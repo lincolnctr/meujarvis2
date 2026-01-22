@@ -11,74 +11,73 @@ import time
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
 # ---------------------------------------------------------
-# 2. DESIGN: LINHA RGB REATIVA (ESTILO GOOGLE IA)
+# 2. DESIGN: LINHA LARANJA MULTI-TOM (ESTILO HUD AVANÇADO)
 # ---------------------------------------------------------
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     
-    /* Linha RGB Fixa no Rodapé */
-    .rgb-line-container {
-        position: fixed;
-        bottom: 82px; /* Ajustado para ficar colado no topo do input */
-        left: 0;
-        width: 100%;
-        height: 3px;
-        z-index: 9999;
-        background: transparent;
-        overflow: hidden;
+    /* Linha de Processamento Fixada ACIMA do Input */
+    .stChatFloatingInputContainer {
+        padding-top: 10px; /* Cria espaço para a linha no topo da barra de input */
     }
 
-    /* Efeito de Movimento das Cores */
-    @keyframes rgb-flow {
+    .jarvis-orb-line {
+        position: fixed;
+        bottom: 90px; /* Posicionada exatamente acima da borda do chat_input */
+        left: 0;
+        width: 100%;
+        height: 4px;
+        z-index: 999999;
+        background: transparent;
+        transition: 0.5s;
+    }
+
+    /* Animação de Fluxo de Energia */
+    @keyframes orange-flow {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
 
-    .rgb-line {
-        width: 100%;
-        height: 100%;
-        transition: 0.5s;
+    /* Estado Ativo: Gradiente com tons de Laranja (Claro, Médio e Escuro) */
+    .active-energy {
+        /* Paleta: Laranja Escuro (#CC4400), Médio (#FF8800), Claro (#FFBB33) */
+        background: linear-gradient(90deg, #CC4400, #FF8800, #FFBB33, #FF8800, #CC4400);
+        background-size: 200% 200%;
+        animation: orange-flow 1.5s linear infinite;
+        box-shadow: 0 -5px 15px rgba(255, 136, 0, 0.4);
     }
 
-    /* Estado Ativo: Gradiente Google pulsando */
-    .rgb-active {
-        background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC05, #34A853, #4285F4);
-        background-size: 300% 300%;
-        animation: rgb-flow 2s linear infinite;
-        box-shadow: 0 0 15px rgba(66, 133, 244, 0.8);
+    /* Estado Idle: Linha sutil/apagada */
+    .idle-energy {
+        background: rgba(255, 136, 0, 0.05);
+        height: 1px;
     }
 
-    /* Estado Idle: Linha discreta e escura */
-    .rgb-idle {
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: none;
-    }
-
-    /* Ajuste do Chat para não bater na linha */
-    .main .block-container { padding-bottom: 120px; }
-    
+    /* Estilo das Mensagens */
     [data-testid="stChatMessage"] { 
         border-radius: 12px; 
         width: 95% !important; 
         background-color: #161b22;
         border: 1px solid #30363d;
+        margin-bottom: 10px;
     }
 
+    .main .block-container { padding-bottom: 150px; }
     .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 18px; text-shadow: 0 0 10px #00d4ff55; }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 3. COMPONENTE VISUAL RGB
+# 3. COMPONENTE DE ENERGIA LARANJA
 # ---------------------------------------------------------
-def render_rgb_line(active=False):
-    status = "rgb-active" if active else "rgb-idle"
-    return f'<div class="rgb-line-container"><div class="rgb-line {status}"></div></div>'
+def render_energy_line(active=False):
+    status = "active-energy" if active else "idle-energy"
+    return f'<div class="jarvis-orb-line {status}"></div>'
 
 # ---------------------------------------------------------
-# 4. FUNÇÕES DE ARQUIVO
+# 4. FUNÇÕES DE MEMÓRIA
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -110,7 +109,7 @@ with st.sidebar:
         st.session_state.titulo_atual = "Aguardando..."
         st.rerun()
 
-    st.subheader("Histórico")
+    st.subheader("Registros")
     if os.path.exists(CHATS_DIR):
         for f_name in sorted(os.listdir(CHATS_DIR), reverse=True):
             c_id = f_name.replace(".json", "")
@@ -131,20 +130,23 @@ if "chat_atual" not in st.session_state:
 
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
-# Placeholder da Linha RGB (Sempre presente)
-rgb_placeholder = st.empty()
-
+# Renderização das Mensagens
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(MEU_ICONE if m["role"] == "user" else JARVIS_ICONE)):
         st.markdown(m["content"])
 
+# Placeholder da Linha de Energia (Renderizada DEPOIS do histórico para ficar sobreposta)
+energy_placeholder = st.empty()
+
 # ---------------------------------------------------------
-# 7. PROCESSAMENTO COM EFEITO GOOGLE RGB
+# 7. MOTOR REATIVO COM LUZES LARANJAS
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 if prompt := st.chat_input("Pergunte o que quiser..."):
-    # Salvar pergunta do usuário
+    # Garante que a linha apareça no estado inicial
+    energy_placeholder.markdown(render_energy_line(active=False), unsafe_allow_html=True)
+    
     if not st.session_state.messages:
         r = client.chat.completions.create(messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}], model="llama-3.1-8b-instant")
         st.session_state.titulo_atual = r.choices[0].message.content.strip()
@@ -154,8 +156,8 @@ if prompt := st.chat_input("Pergunte o que quiser..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
-        # ATIVA AS LUZES RGB (Movimento e brilho)
-        rgb_placeholder.markdown(render_rgb_line(active=True), unsafe_allow_html=True)
+        # LIGA AS LUZES LARANJAS NO TOPO DA CAIXA
+        energy_placeholder.markdown(render_energy_line(active=True), unsafe_allow_html=True)
         
         try:
             sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%."
@@ -173,8 +175,8 @@ if prompt := st.chat_input("Pergunte o que quiser..."):
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
             
         finally:
-            # DESATIVA AS LUZES (Linha fica escura/idle)
-            rgb_placeholder.markdown(render_rgb_line(active=False), unsafe_allow_html=True)
+            # DESLIGA A ANIMAÇÃO (Retorna ao estado idle)
+            energy_placeholder.markdown(render_energy_line(active=False), unsafe_allow_html=True)
 else:
-    # Mantém a linha visível em standby
-    rgb_placeholder.markdown(render_rgb_line(active=False), unsafe_allow_html=True)
+    # Mantém a linha visível em standby acima do input
+    energy_placeholder.markdown(render_energy_line(active=False), unsafe_allow_html=True)
