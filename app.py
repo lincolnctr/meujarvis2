@@ -18,6 +18,20 @@ st.markdown("""
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
     [data-testid="stChatMessage"] { border-radius: 15px; margin-bottom: 10px; width: 85%; }
 
+/* Animação de Pulsar */
+@keyframes pulse {
+    0% { text-shadow: 0 0 5px #00d4ff, 0 0 10px #00d4ff; }
+    50% { text-shadow: 0 0 20px #00d4ff, 0 0 30px #00d4ff, 0 0 40px #00d4ff; }
+    100% { text-shadow: 0 0 5px #00d4ff, 0 0 10px #00d4ff; }
+}
+
+/* Aplicando ao Título JARVIS */
+.jarvis-log {
+    color: #00d4ff;
+    font-family: 'monospace';
+    animation: pulse 2s infinite; /* <--- Aqui a mágica acontece */
+}
+
     /* BALÃO DO LINCOLN (DIREITA) */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
         margin-left: auto !important;
