@@ -6,7 +6,7 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. CONFIGURAÇÕES E ESTILO (PROTOCOLO LARANJA NEON)
+# 1. CONFIGURAÇÕES E ESTILO
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
@@ -37,7 +37,17 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. SISTEMA DE ARQUIVOS E MEMÓRIA
+# 2. INICIALIZAÇÃO DE ESTADOS (CORREÇÃO DO ERRO)
+# ---------------------------------------------------------
+if "chat_atual" not in st.session_state:
+    st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "titulo_atual" not in st.session_state:
+    st.session_state.titulo_atual = "Aguardando Comando..."
+
+# ---------------------------------------------------------
+# 3. SISTEMA DE ARQUIVOS E MEMÓRIA
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -54,7 +64,7 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# 3. CORE OS: CONTROLES E REGISTROS
+# 4. CORE OS: CONTROLES E REGISTROS
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
@@ -77,23 +87,18 @@ with st.sidebar:
             cid = f.replace(".json", "")
             dados = carregar_chat(cid)
             col1, col2 = st.columns([0.8, 0.2])
-            if col1.button(f"• {dados['titulo']}", key=f"b_{cid}"):
+            if col1.button(f"• {dados.get('titulo', 'Sem Título')}", key=f"b_{cid}"):
                 st.session_state.chat_atual = cid
                 st.session_state.messages = dados['messages']
-                st.session_state.titulo_atual = dados['titulo']
+                st.session_state.titulo_atual = dados.get('titulo', 'Sessão')
                 st.rerun()
             if col2.button("🗑️", key=f"d_{cid}"):
                 os.remove(os.path.join(CHATS_DIR, f))
                 st.rerun()
 
 # ---------------------------------------------------------
-# 4. INTERFACE E PROCESSAMENTO
+# 5. INTERFACE PRINCIPAL
 # ---------------------------------------------------------
-if "chat_atual" not in st.session_state:
-    st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
-    st.session_state.messages = []
-    st.session_state.titulo_atual = "Novo Registro"
-
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 for m in st.session_state.messages:
@@ -102,12 +107,19 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
-    # LÓGICA DE TÍTULO: Se for a primeira mensagem, define o título
-    if not st.session_state.messages:
-        # Pega as primeiras palavras para o título
-        st.session_state.titulo_atual = (prompt[:25] + '..') if len(prompt) > 25 else prompt
+if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     
+    # Se for o início, gerar título baseado no primeiro assunto
+    if not st.session_state.messages:
+        try:
+            res_titulo = client.chat.completions.create(
+                messages=[{"role": "user", "content": f"Crie um título curto (máx 3 palavras) para este assunto: {prompt}"}],
+                model="llama-3.1-8b-instant"
+            )
+            st.session_state.titulo_atual = res_titulo.choices[0].message.content.replace('"', '')
+        except:
+            st.session_state.titulo_atual = prompt[:20]
+
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -127,12 +139,11 @@ if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
-                    time.sleep(0.01)
             
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             
-            # SALVA COM O TÍTULO FIXO DO ASSUNTO INICIAL
+            # SALVA COM O TÍTULO DO PRIMEIRO ASSUNTO
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
 
         except Exception as e:
