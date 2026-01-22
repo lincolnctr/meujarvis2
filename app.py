@@ -14,13 +14,12 @@ st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     
-    /* EFEITO DE BORDA PARA O DIÁLOGO ATIVO */
     .jarvis-active-border {
         border: 2px solid #ff8c00;
         border-radius: 15px;
         padding: 20px;
         background: linear-gradient(145deg, #161b22, #0e1117);
-        box-shadow: 0 0 20px rgba(255, 140, 0, 0.4), inset 0 0 10px rgba(255, 69, 0, 0.2);
+        box-shadow: 0 0 20px rgba(255, 140, 0, 0.4);
         animation: pulse-orange 2s infinite;
         margin-top: 10px;
     }
@@ -31,10 +30,8 @@ st.markdown("""
         100% { border-color: #ffcc33; box-shadow: 0 0 5px rgba(255, 204, 51, 0.5); }
     }
 
-    /* Ajustes da Sidebar */
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
     .stSlider label { color: #ff8c00 !important; font-family: monospace; }
-    
     .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 20px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
@@ -62,7 +59,6 @@ def salvar_chat(chat_id, titulo, msgs):
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
     
-    # Restauração total das personalidades
     st.subheader("Personalidade")
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
     humor = st.slider("Humor %", 0, 100, 30)
@@ -72,6 +68,7 @@ with st.sidebar:
     if st.button("+ Reiniciar Protocolos"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.messages = []
+        st.session_state.titulo_atual = "Novo Registro"
         st.rerun()
 
     st.subheader("Registros")
@@ -80,8 +77,10 @@ with st.sidebar:
             cid = f.replace(".json", "")
             dados = carregar_chat(cid)
             col1, col2 = st.columns([0.8, 0.2])
-            if col1.button(f"• {dados['titulo'][:15]}", key=f"b_{cid}"):
-                st.session_state.chat_atual, st.session_state.messages = cid, dados['messages']
+            if col1.button(f"• {dados['titulo']}", key=f"b_{cid}"):
+                st.session_state.chat_atual = cid
+                st.session_state.messages = dados['messages']
+                st.session_state.titulo_atual = dados['titulo']
                 st.rerun()
             if col2.button("🗑️", key=f"d_{cid}"):
                 os.remove(os.path.join(CHATS_DIR, f))
@@ -93,28 +92,28 @@ with st.sidebar:
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
     st.session_state.messages = []
+    st.session_state.titulo_atual = "Novo Registro"
 
-st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | ANALISADOR DE FREQUÊNCIA</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
-# Exibe histórico existente
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(None if m["role"]=="user" else JARVIS_ICONE)):
         st.markdown(m["content"])
 
-# Entrada de Comando
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
+    # LÓGICA DE TÍTULO: Se for a primeira mensagem, define o título
+    if not st.session_state.messages:
+        # Pega as primeiras palavras para o título
+        st.session_state.titulo_atual = (prompt[:25] + '..') if len(prompt) > 25 else prompt
+    
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # RESPOSTA COM MOLDURA DE ENERGIA
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
-        # AQUI ESTÁ A MOLDURA: Criamos um balão customizado que "brilha" enquanto o texto corre
         response_placeholder = st.empty()
-        
-        # Iniciamos a moldura HTML
         full_res = ""
         try:
             sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
@@ -127,18 +126,14 @@ if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
-                    # Injetamos o texto dentro da moldura animada de tons laranja
-                    response_placeholder.markdown(f"""
-                        <div class="jarvis-active-border">
-                            {full_res}█
-                        </div>
-                    """, unsafe_allow_html=True)
+                    response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
                     time.sleep(0.01)
             
-            # Ao finalizar, removemos o cursor e a moldura para salvar o estado limpo
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
-            salvar_chat(st.session_state.chat_atual, prompt[:15], st.session_state.messages)
+            
+            # SALVA COM O TÍTULO FIXO DO ASSUNTO INICIAL
+            salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
 
         except Exception as e:
             st.error(f"Erro no Core: {e}")
