@@ -36,7 +36,7 @@ st.markdown("""
 
     /* LOGO / TÍTULO PRINCIPAL NO TOPO */
     .jarvis-log {
-        color: #185b78;                 /* <--- COR DO NOME J.A.R.V.I.S. */
+        color: #1b578f;                 /* <--- COR DO NOME J.A.R.V.I.S. */
         font-family: 'monospace';
         font-size: 20px;
         font-weight: bold;
@@ -86,7 +86,7 @@ def carregar_chat(chat_id):
 # ---------------------------------------------------------
 with st.sidebar:
     # TÍTULO DA BARRA LATERAL
-    st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>SISTEMA CORE</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#1b578f; font-family:monospace;'>SISTEMA CORE</h2>", unsafe_allow_html=True)
     
     # AJUSTES DE PERSONALIDADE (SLIDERS)
     st.subheader("Personalidade")
