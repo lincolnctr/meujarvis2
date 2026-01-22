@@ -130,7 +130,7 @@ dados_perfil = carregar_perfil()
 # EXIBIÇÃO COM AVATARES PERSONALIZÁVEIS
 for m in st.session_state.messages:
     # SINALIZADOR: Altere o emoji abaixo para mudar seu ícone ou o meu
-    icone = "👤" if m["role"] == "user" else "🤖" 
+    icone = "ჲ" if m["role"] == "user" else "🤖" 
     with st.chat_message(m["role"], avatar=icone):
         st.markdown(m["content"])
 
