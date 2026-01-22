@@ -1,53 +1,48 @@
 import streamlit as st
 from groq import Groq
+import os
 
-# 1. Configuração da Página (Sem o escudo agora)
+# 1. Configuração da Página
 st.set_page_config(page_title="J.A.R.V.I.S.", page_icon="🤖")
 
-# 2. CSS Customizado para alinhar os balões (Direita para Usuário, Esquerda para Jarvis)
+# 2. CSS Customizado (Mantendo seu estilo de balões e cores frias)
 st.markdown("""
     <style>
-    /* Fundo do App */
     .stApp { background-color: #0e1117; }
+    h1 { color: #00d4ff; font-family: 'Segoe UI', sans-serif; }
+    [data-testid="stChatMessage"] { border-radius: 15px; margin-bottom: 10px; width: 80%; }
     
-    /* Título */
-    h1 { color: #00d4ff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-    /* Alinhamento das mensagens */
-    [data-testid="stChatMessage"] {
-        border-radius: 15px;
-        margin-bottom: 10px;
-        width: 80%;
-    }
-
-    /* Estilo para a mensagem do USUÁRIO (Direita) */
-    [data-testid="chatAvatarIcon-user"] {
-        display: none;
-    }
+    /* Balão do Lincoln (Direita) - Cores Frias */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
         margin-left: auto;
         background-color: #1d2b3a;
         border: 1px solid #00d4ff55;
     }
 
-    /* Estilo para a mensagem do ASSISTENTE (Esquerda) */
+    /* Balão do JARVIS (Esquerda) */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from assistant"]) {
         margin-right: auto;
         background-color: #161b22;
         border: 1px solid #30363d;
     }
     
-    /* Esconde o menu e o footer do Streamlit para ficar mais limpo */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    #MainMenu, footer, header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
 st.title("J.A.R.V.I.S.")
-st.caption("Protocolo de Interface - Senhor Lincoln")
+st.caption("Protocolo de Identidade Ativo - Senhor Lincoln")
 
-# 3. Conexão com a Chave (Usando Secrets)
+# 3. Carregamento do Perfil Personalizado
+def carregar_perfil():
+    if os.path.exists("perfil.txt"):
+        with open("perfil.txt", "r", encoding="utf-8") as f:
+            return f.read()
+    return "Lincoln, brasileiro, organizado e perfeccionista."
+
+perfil_contexto = carregar_perfil()
+
+# 4. Conexão com Groq
 if "GROQ_API_KEY" in st.secrets:
     api_key = st.secrets["GROQ_API_KEY"]
 else:
@@ -55,28 +50,31 @@ else:
 
 client = Groq(api_key=api_key)
 
-# 4. Memória da Conversa
+# 5. Memória da Conversa
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Exibe as mensagens
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 5. Entrada do Usuário
-if prompt := st.chat_input("Comande o sistema..."):
-    # Salva e exibe mensagem do usuário
+# 6. Interação
+if prompt := st.chat_input("Em que posso ser útil, Senhor?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Resposta do Jarvis
     with st.chat_message("assistant"):
         try:
-            instrucoes = "Você é o JARVIS. Responda de forma elegante, curta, técnica e chame o usuário de Senhor Lincoln."
+            # O JARVIS agora usa o seu perfil em cada resposta
+            system_prompt = f"""
+            Você é o JARVIS. Responda de forma elegante, técnica e curta.
+            Siga rigorosamente este contexto sobre o usuário: {perfil_contexto}.
+            Lembre-se: Ele é organizado, perfeccionista e prefere cores frias.
+            Se ele falar de carros, lembre-se que ele não entende e não tem interesse.
+            """
             
-            full_messages = [{"role": "system", "content": instrucoes}] + [
+            full_messages = [{"role": "system", "content": system_prompt}] + [
                 {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
             ]
 
@@ -90,4 +88,4 @@ if prompt := st.chat_input("Comande o sistema..."):
             st.session_state.messages.append({"role": "assistant", "content": response})
             
         except Exception as e:
-            st.error(f"Erro no sistema: {e}")
+            st.error(f"Erro nos sistemas: {e}")
