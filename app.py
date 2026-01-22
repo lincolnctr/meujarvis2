@@ -6,48 +6,77 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. CONFIGURAÇÕES E ESTILO
+# 1. CONFIGURAÇÕES E ESTILO (HUD STARK FUTURISTA)
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300&display=swap');
+
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     
+    /* LOGO J.A.R.V.I.S. FUTURISTA */
+    .jarvis-header {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 42px;
+        font-weight: 700;
+        color: #00d4ff;
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: 5px;
+        text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff55, 0 0 30px #00d4ff22;
+        animation: glow 3s infinite alternate;
+        margin-bottom: 5px;
+    }
+
+    @keyframes glow {
+        from { text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff55; }
+        to { text-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff88, 0 0 60px #00d4ff44; }
+    }
+
+    /* MOLDURA DE ENERGIA LARANJA COM FADE-IN */
     .jarvis-active-border {
         border: 2px solid #ff8c00;
         border-radius: 15px;
         padding: 20px;
-        background: linear-gradient(145deg, #161b22, #0e1117);
-        box-shadow: 0 0 20px rgba(255, 140, 0, 0.4);
-        animation: pulse-orange 2s infinite;
+        background: rgba(22, 27, 34, 0.8);
+        box-shadow: 0 0 25px rgba(255, 140, 0, 0.3);
+        animation: pulse-orange 2s infinite, fadeIn 0.8s ease-in;
         margin-top: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        line-height: 1.6;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes pulse-orange {
-        0% { border-color: #4b1d00; box-shadow: 0 0 5px rgba(75, 29, 0, 0.5); }
-        50% { border-color: #ff8c00; box-shadow: 0 0 25px rgba(255, 140, 0, 0.7); }
-        100% { border-color: #ffcc33; box-shadow: 0 0 5px rgba(255, 204, 51, 0.5); }
+        0% { border-color: #4b1d00; }
+        50% { border-color: #ff8c00; }
+        100% { border-color: #ffcc33; }
     }
 
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
-    .stSlider label { color: #ff8c00 !important; font-family: monospace; }
-    .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 20px; font-weight: bold; }
+    .stSlider label { color: #ff8c00 !important; font-family: 'Orbitron', sans-serif; font-size: 12px; }
+    .protocol-label { color: #888; font-family: 'JetBrains Mono', monospace; font-size: 14px; margin-bottom: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. INICIALIZAÇÃO DE ESTADOS (CORREÇÃO DO ERRO)
+# 2. INICIALIZAÇÃO DE ESTADOS
 # ---------------------------------------------------------
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "titulo_atual" not in st.session_state:
-    st.session_state.titulo_atual = "Aguardando Comando..."
+    st.session_state.titulo_atual = "SESSÃO INICIAL"
 
 # ---------------------------------------------------------
-# 3. SISTEMA DE ARQUIVOS E MEMÓRIA
+# 3. SISTEMA DE MEMÓRIA
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -64,32 +93,30 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# 4. CORE OS: CONTROLES E REGISTROS
+# 4. CORE OS: SIDEBAR
 # ---------------------------------------------------------
 with st.sidebar:
-    st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
     
-    st.subheader("Personalidade")
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
     humor = st.slider("Humor %", 0, 100, 30)
     sinceridade = st.slider("Sinceridade %", 0, 100, 100)
     
     st.markdown("---")
-    if st.button("+ Reiniciar Protocolos"):
+    if st.button("+ NOVO PROTOCOLO"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.messages = []
-        st.session_state.titulo_atual = "Novo Registro"
+        st.session_state.titulo_atual = "AGUARDANDO..."
         st.rerun()
 
-    st.subheader("Registros")
+    st.subheader("REGISTROS")
     if os.path.exists(CHATS_DIR):
         for f in sorted(os.listdir(CHATS_DIR), reverse=True):
             cid = f.replace(".json", "")
             dados = carregar_chat(cid)
             col1, col2 = st.columns([0.8, 0.2])
-            if col1.button(f"• {dados.get('titulo', 'Sem Título')}", key=f"b_{cid}"):
-                st.session_state.chat_atual = cid
-                st.session_state.messages = dados['messages']
+            if col1.button(f"• {dados.get('titulo', 'Sessão')}", key=f"b_{cid}"):
+                st.session_state.chat_atual, st.session_state.messages = cid, dados['messages']
                 st.session_state.titulo_atual = dados.get('titulo', 'Sessão')
                 st.rerun()
             if col2.button("🗑️", key=f"d_{cid}"):
@@ -97,9 +124,10 @@ with st.sidebar:
                 st.rerun()
 
 # ---------------------------------------------------------
-# 5. INTERFACE PRINCIPAL
+# 5. INTERFACE HUD
 # ---------------------------------------------------------
-st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
+st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
+st.markdown(f"<div class='protocol-label'>SISTEMA OPERACIONAL // PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(None if m["role"]=="user" else JARVIS_ICONE)):
@@ -107,18 +135,18 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-if prompt := st.chat_input("Comando, Senhor Lincoln..."):
+if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
     
-    # Se for o início, gerar título baseado no primeiro assunto
+    # Gerar título inteligente se for a primeira mensagem
     if not st.session_state.messages:
         try:
-            res_titulo = client.chat.completions.create(
-                messages=[{"role": "user", "content": f"Crie um título curto (máx 3 palavras) para este assunto: {prompt}"}],
+            res_t = client.chat.completions.create(
+                messages=[{"role": "user", "content": f"Resuma em 2 palavras este assunto: {prompt}"}],
                 model="llama-3.1-8b-instant"
             )
-            st.session_state.titulo_atual = res_titulo.choices[0].message.content.replace('"', '')
+            st.session_state.titulo_atual = res_t.choices[0].message.content.upper().replace('"', '')
         except:
-            st.session_state.titulo_atual = prompt[:20]
+            st.session_state.titulo_atual = prompt[:15].upper()
 
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -138,12 +166,12 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
+                    # EFEITO DE DIGITAÇÃO MAIS LENTO E MOLDURA ATIVA
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
+                    time.sleep(0.04) # Ajustado para velocidade humana/IA mais cinematográfica
             
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
-            
-            # SALVA COM O TÍTULO DO PRIMEIRO ASSUNTO
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
 
         except Exception as e:
