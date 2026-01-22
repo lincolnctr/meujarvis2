@@ -22,7 +22,7 @@ if "GROQ_API_KEY" in st.secrets:
     api_key = st.secrets["GROQ_API_KEY"]
 else:
     # Se você for testar localmente, coloque a chave aqui
-    api_key = "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"
+    api_key = st.secrets["GROQ_API_KEY"]
 
 client = Groq(api_key=api_key)
 
