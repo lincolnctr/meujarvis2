@@ -6,51 +6,42 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. CONFIGURAÇÕES E ESTILO (HUD STARK FUTURISTA)
+# 1. DESIGN HUD: UNIFICAÇÃO DE FONTE E ROLAGEM SUAVE
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300;400&display=swap');
+
+    /* Define a fonte JetBrains Mono para TODO o app para evitar o 'salto' */
+    html, body, [class*="css"], .stMarkdown, p, div {
+        font-family: 'JetBrains Mono', monospace !important;
+    }
 
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     
-    /* LOGO J.A.R.V.I.S. FUTURISTA */
+    /* LOGO J.A.R.V.I.S. */
     .jarvis-header {
-        font-family: 'Orbitron', sans-serif;
+        font-family: 'Orbitron', sans-serif !important;
         font-size: 42px;
         font-weight: 700;
         color: #00d4ff;
-        text-align: left;
-        text-transform: uppercase;
         letter-spacing: 5px;
-        text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff55, 0 0 30px #00d4ff22;
+        text-shadow: 0 0 15px #00d4ffaa;
         animation: glow 3s infinite alternate;
-        margin-bottom: 5px;
     }
 
-    @keyframes glow {
-        from { text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff55; }
-        to { text-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff88, 0 0 60px #00d4ff44; }
-    }
-
-    /* MOLDURA DE ENERGIA LARANJA COM FADE-IN */
+    /* MOLDURA DE ENERGIA (Sem alteração de fonte) */
     .jarvis-active-border {
         border: 2px solid #ff8c00;
         border-radius: 15px;
         padding: 20px;
-        background: rgba(22, 27, 34, 0.8);
+        background: rgba(22, 27, 34, 0.9);
         box-shadow: 0 0 25px rgba(255, 140, 0, 0.3);
-        animation: pulse-orange 2s infinite, fadeIn 0.8s ease-in;
+        animation: pulse-orange 2s infinite;
         margin-top: 10px;
-        font-family: 'JetBrains Mono', monospace;
         line-height: 1.6;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes pulse-orange {
@@ -59,10 +50,28 @@ st.markdown("""
         100% { border-color: #ffcc33; }
     }
 
-    [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
-    .stSlider label { color: #ff8c00 !important; font-family: 'Orbitron', sans-serif; font-size: 12px; }
-    .protocol-label { color: #888; font-family: 'JetBrains Mono', monospace; font-size: 14px; margin-bottom: 20px; }
+    @keyframes glow {
+        from { text-shadow: 0 0 10px #00d4ff; }
+        to { text-shadow: 0 0 25px #00d4ff; }
+    }
+
+    /* Esconde a barra de progresso padrão do Streamlit para não poluir o HUD */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
     </style>
+    
+    <script>
+    // Função para manter o scroll suave no fundo da página
+    function scrollToBottom() {
+        window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+    // Observador para rodar o scroll sempre que o conteúdo mudar
+    const observer = new MutationObserver(scrollToBottom);
+    observer.observe(document.body, { childList: true, subtree: true });
+    </script>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
@@ -97,7 +106,6 @@ def salvar_chat(chat_id, titulo, msgs):
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
-    
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
     humor = st.slider("Humor %", 0, 100, 30)
     sinceridade = st.slider("Sinceridade %", 0, 100, 100)
@@ -127,21 +135,21 @@ with st.sidebar:
 # 5. INTERFACE HUD
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
-st.markdown(f"<div class='protocol-label'>SISTEMA OPERACIONAL // PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
+st.markdown(f"<div style='color:#888; font-size:14px;'>PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
+# Container para mensagens antigas
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(None if m["role"]=="user" else JARVIS_ICONE)):
         st.markdown(m["content"])
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
+if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     
-    # Gerar título inteligente se for a primeira mensagem
     if not st.session_state.messages:
         try:
             res_t = client.chat.completions.create(
-                messages=[{"role": "user", "content": f"Resuma em 2 palavras este assunto: {prompt}"}],
+                messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}],
                 model="llama-3.1-8b-instant"
             )
             st.session_state.titulo_atual = res_t.choices[0].message.content.upper().replace('"', '')
@@ -159,16 +167,15 @@ if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
             sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
             stream = client.chat.completions.create(
                 messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages,
-                model="llama-3.1-8b-instant",
-                stream=True
+                model="llama-3.1-8b-instant", stream=True
             )
 
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
-                    # EFEITO DE DIGITAÇÃO MAIS LENTO E MOLDURA ATIVA
+                    # Renderização com a mesma fonte do restante do sistema
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
-                    time.sleep(0.04) # Ajustado para velocidade humana/IA mais cinematográfica
+                    time.sleep(0.04)
             
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
