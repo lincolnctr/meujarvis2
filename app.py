@@ -87,7 +87,7 @@ with st.sidebar:
     humor = st.slider("Humor %", 0, 100, 30)
     
     st.markdown("---")
-    if st.button("⚡ NOVO PROTOCOLO"):
+    if st.button("Novo Protocolo<>"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.messages = []
         st.session_state.titulo_atual = "Aguardando..."
@@ -130,7 +130,7 @@ dados_perfil = carregar_perfil()
 # EXIBIÇÃO COM AVATARES PERSONALIZÁVEIS
 for m in st.session_state.messages:
     # SINALIZADOR: Altere o emoji abaixo para mudar seu ícone ou o meu
-    icone = "ჲ" if m["role"] == "user" else "🤖" 
+    icone = "•" if m["role"] == "user" else "🤖" 
     with st.chat_message(m["role"], avatar=icone):
         st.markdown(m["content"])
 
