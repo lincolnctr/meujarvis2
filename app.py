@@ -11,23 +11,25 @@ import time
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
 # ---------------------------------------------------------
-# 2. DESIGN MINIMALISTA (ESTILO "CHAMBER")
+# 2. DESIGN EXPANDIDO E MINIMALISTA
 # ---------------------------------------------------------
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; } 
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
     
-    /* Fade-in suave dos balões */
+    /* Fade-in suave */
     @keyframes messageFade {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
+    /* BALÕES EXPANDIDOS - Ocupam mais espaço na tela */
     [data-testid="stChatMessage"] { 
         border-radius: 12px; 
         margin-bottom: 15px; 
-        width: 75%; /* Mais estreito para elegância */
+        width: 95% !important; /* <--- Aumentado de 75% para 95% */
+        max-width: 100% !important; /* Remove a trava de largura do Streamlit */
         animation: messageFade 0.7s ease-out;
     }
 
@@ -46,7 +48,7 @@ st.markdown("""
         letter-spacing: 1px;
     }
 
-    /* Balões de Chat */
+    /* Alinhamento dos Balões */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
         margin-left: auto !important;
         background-color: #1d2b3a;
@@ -59,11 +61,16 @@ st.markdown("""
         border: 1px solid #30363d;
     }
 
-    /* Interface Sidebar */
+    /* Botões da Sidebar */
     .stButton>button { border-radius: 8px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; }
     
     header { background-color: rgba(0,0,0,0) !important; }
     footer { visibility: hidden; }
+    
+    /* Garante que o container interno também use a largura total */
+    [data-testid="stChatMessageContent"] {
+        width: 100% !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -179,14 +186,12 @@ if prompt := st.chat_input("Comando..."):
                 stream=True
             )
 
-            # Função de Escrita Fluida (Igual ao ChatGPT)
             def fluidez_total():
                 for chunk in response:
                     if chunk.choices[0].delta.content:
                         yield chunk.choices[0].delta.content
-                        time.sleep(0.01) # Delay leve entre chunks de texto
+                        time.sleep(0.01)
 
-            # O write_stream do Streamlit é otimizado para chunks
             content = st.write_stream(fluidez_total())
             
             st.session_state.messages.append({"role": "assistant", "content": content})
