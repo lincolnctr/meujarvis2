@@ -3,6 +3,7 @@ from groq import Groq
 import os
 import json
 import uuid
+import time # Protocolo de temporização para animação
 
 # ---------------------------------------------------------
 # 1. CONFIGURAÇÕES DE SISTEMA
@@ -10,27 +11,41 @@ import uuid
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
 # ---------------------------------------------------------
-# 2. DESIGN E PERSONALIZAÇÃO
+# 2. DESIGN, PERSONALIZAÇÃO E ANIMAÇÕES
 # ---------------------------------------------------------
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; } 
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
-    [data-testid="stChatMessage"] { border-radius: 15px; margin-bottom: 10px; width: 85%; }
+    
+    /* Animação de Surgimento (Fade-in) nos Balões */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-/* Animação de Pulsar */
-@keyframes pulse {
-    0% { text-shadow: 0 0 5px #00d4ff, 0 0 10px #00d4ff; }
-    50% { text-shadow: 0 0 20px #00d4ff, 0 0 30px #00d4ff, 0 0 40px #00d4ff; }
-    100% { text-shadow: 0 0 5px #00d4ff, 0 0 10px #00d4ff; }
-}
+    [data-testid="stChatMessage"] { 
+        border-radius: 15px; 
+        margin-bottom: 10px; 
+        width: 85%; 
+        animation: fadeIn 0.5s ease-out; /* Aplica o fade-in */
+    }
 
-/* Aplicando ao Título JARVIS */
-.jarvis-log {
-    color: #00d4ff;
-    font-family: 'monospace';
-    animation: pulse 2s infinite; /* <--- Aqui a mágica acontece */
-}
+    /* Animação de Pulsar no Título */
+    @keyframes pulse {
+        0% { text-shadow: 0 0 5px #00d4ff, 0 0 10px #00d4ff; }
+        50% { text-shadow: 0 0 20px #00d4ff, 0 0 30px #00d4ff, 0 0 40px #00d4ff; }
+        100% { text-shadow: 0 0 5px #00d4ff, 0 0 10px #00d4ff; }
+    }
+
+    .jarvis-log {
+        color: #00d4ff;
+        font-family: 'monospace';
+        font-size: 20px;
+        font-weight: bold;
+        padding-left: 50px;
+        animation: pulse 2s infinite;
+    }
 
     /* BALÃO DO LINCOLN (DIREITA) */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
@@ -47,7 +62,6 @@ st.markdown("""
     }
 
     button[kind="header"] { color: #00d4ff !important; background-color: rgba(0, 212, 255, 0.1) !important; border-radius: 50% !important; }
-    .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 20px; font-weight: bold; padding-left: 50px; }
     .stButton>button { width: 100%; border-radius: 5px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; text-align: left; }
     header { background-color: rgba(0,0,0,0) !important; }
     footer { visibility: hidden; }
@@ -60,11 +74,8 @@ st.markdown("""
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 
-# CONFIGURAÇÃO DE AVATARES (MUDE AQUI)
-# Se colocar um link, certifique-se que termina em .png ou .jpg
-# Se der erro, o sistema usará o padrão "user" e "assistant"
-MEU_ICONE = "👤"  # <--- SEU ÍCONE AQUI
-JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png" # <--- ÍCONE DO JARVIS AQUI
+MEU_ICONE = "👤" 
+JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -132,19 +143,18 @@ if "chat_atual" not in st.session_state:
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 6. MOTOR JARVIS (GROQ)
+# 6. MOTOR JARVIS (GROQ COM STREAMING)
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 dados_perfil = carregar_perfil()
 
-# HISTÓRICO COM PROTEÇÃO DE ÍCONE
 for m in st.session_state.messages:
     try:
         icone = MEU_ICONE if m["role"] == "user" else JARVIS_ICONE
         with st.chat_message(m["role"], avatar=icone):
             st.markdown(m["content"])
     except:
-        with st.chat_message(m["role"]): # Fallback se o ícone der erro
+        with st.chat_message(m["role"]):
             st.markdown(m["content"])
 
 if prompt := st.chat_input("Comando..."):
@@ -157,13 +167,11 @@ if prompt := st.chat_input("Comando..."):
 
     st.session_state.messages.append({"role": "user", "content": prompt})
     
-    # MENSAGEM DO USUÁRIO COM PROTEÇÃO
     try:
         with st.chat_message("user", avatar=MEU_ICONE): st.markdown(prompt)
     except:
         with st.chat_message("user"): st.markdown(prompt)
 
-    # RESPOSTA DO JARVIS COM PROTEÇÃO
     with st.chat_message("assistant", avatar=JARVIS_ICONE): 
         try:
             sys_prompt = f"""
@@ -171,10 +179,25 @@ if prompt := st.chat_input("Comando..."):
             Fale naturalmente, sem tópicos. Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%.
             Chame de Senhor Lincoln. Máximo 3 frases.
             """
+            
             full_m = [{"role": "system", "content": sys_prompt}] + st.session_state.messages
-            res = client.chat.completions.create(messages=full_m, model="llama-3.1-8b-instant")
-            content = res.choices[0].message.content
-            st.markdown(content)
+            
+            # Protocolo de Streaming ativado
+            response = client.chat.completions.create(
+                messages=full_m, 
+                model="llama-3.1-8b-instant",
+                stream=True
+            )
+
+            def gerador_de_texto():
+                for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+                        time.sleep(0.01)
+
+            # Exibe com animação de escrita
+            content = st.write_stream(gerador_de_texto)
+            
             st.session_state.messages.append({"role": "assistant", "content": content})
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
         except Exception as e:
