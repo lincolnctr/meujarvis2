@@ -4,7 +4,7 @@ import os
 import json
 import uuid
 
-# 1. Configuração da Página
+# 1. Configuração da Página - Forçar Sidebar aberta no carregamento
 st.set_page_config(
     page_title="J.A.R.V.I.S. OS", 
     page_icon="🤖", 
@@ -16,14 +16,18 @@ st.set_page_config(
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; }
-    [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
-    .jarvis-title { color: #00d4ff; font-family: 'monospace'; letter-spacing: 4px; }
+    [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; min-width: 250px; }
+    .jarvis-header { color: #00d4ff; font-family: 'monospace'; font-weight: bold; font-size: 24px; border-bottom: 2px solid #00d4ff; padding-bottom: 10px; margin-bottom: 20px; }
     .stButton>button { width: 100%; border-radius: 5px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; text-align: left; }
+    
+    /* Estilo dos balões para mobile */
+    [data-testid="stChatMessage"] { border-radius: 15px; margin-bottom: 10px; font-size: 14px; }
+    
     #MainMenu, footer, header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Funções de Sistema (Com Tratamento de Erro de Versão)
+# 3. Funções de Sistema (Inteligentes)
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 
@@ -42,12 +46,7 @@ def carregar_chat(chat_id):
     if os.path.exists(caminho):
         with open(caminho, "r", encoding="utf-8") as f:
             conteudo = json.load(f)
-            # Se for o formato novo (dicionário com título)
-            if isinstance(conteudo, dict):
-                return conteudo
-            # Se for o formato antigo (apenas uma lista de mensagens)
-            else:
-                return {"titulo": "Protocolo Antigo", "mensagens": conteudo}
+            return conteudo if isinstance(conteudo, dict) else {"titulo": "Protocolo Antigo", "mensagens": conteudo}
     return {"titulo": "Novo Protocolo", "mensagens": []}
 
 def gerar_titulo_ia(primeira_pergunta, client):
@@ -60,42 +59,48 @@ def gerar_titulo_ia(primeira_pergunta, client):
         return resp.choices[0].message.content.strip()
     except: return "Sessão Ativa"
 
-# 4. Sidebar
-st.sidebar.markdown("<h1 class='jarvis-title'>CORE</h1>", unsafe_allow_html=True)
-
-if st.sidebar.button("⚡ NOVO PROTOCOLO"):
-    novo_id = f"chat_{uuid.uuid4().hex[:6]}"
-    st.session_state.chat_atual = novo_id
-    st.session_state.messages = []
-    st.session_state.titulo_atual = "Aguardando comando..."
-    st.rerun()
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("Logs de Memória")
-
-if os.path.exists(CHATS_DIR):
+# 4. Sidebar - Central de Controle
+with st.sidebar:
+    st.markdown("<div class='jarvis-header'>SISTEMA CORE</div>", unsafe_allow_html=True)
+    
+    if st.button("⚡ NOVO PROTOCOLO"):
+        st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
+        st.session_state.messages = []
+        st.session_state.titulo_atual = "Aguardando..."
+        st.rerun()
+    
+    st.markdown("---")
+    st.subheader("Registros")
+    
     arquivos = sorted([f for f in os.listdir(CHATS_DIR) if f.endswith(".json")], reverse=True)
     for chat_file in arquivos:
         c_id = chat_file.replace(".json", "")
         dados = carregar_chat(c_id)
-        nome_exibicao = dados.get('titulo', "Protocolo Antigo")
+        tit = dados.get('titulo', "Sessão")
         
-        if st.sidebar.button(f"ID: {nome_exibicao}", key=c_id):
-            st.session_state.chat_atual = c_id
-            st.session_state.messages = dados.get('mensagens', [])
-            st.session_state.titulo_atual = nome_exibicao
-            st.rerun()
+        # Colunas para Chat e Deletar
+        col1, col2 = st.columns([0.8, 0.2])
+        with col1:
+            if st.button(f"📄 {tit}", key=f"btn_{c_id}"):
+                st.session_state.chat_atual = c_id
+                st.session_state.messages = dados.get('mensagens', [])
+                st.session_state.titulo_atual = tit
+                st.rerun()
+        with col2:
+            if st.button("🗑️", key=f"del_{c_id}"):
+                os.remove(os.path.join(CHATS_DIR, chat_file))
+                st.rerun()
 
-# 5. Inicialização da Sessão
+# 5. Interface Principal
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = "sessao_inicial"
-    dados_init = carregar_chat("sessao_inicial")
-    st.session_state.messages = dados_init['mensagens']
-    st.session_state.titulo_atual = dados_init['titulo']
+    d = carregar_chat("sessao_inicial")
+    st.session_state.messages = d['mensagens']
+    st.session_state.titulo_atual = d['titulo']
 
-st.markdown(f"<h3 style='color:#00d4ff;'>J.A.R.V.I.S. > {st.session_state.titulo_atual}</h3>", unsafe_allow_html=True)
+st.markdown(f"<h2 style='color:#00d4ff;'>J.A.R.V.I.S. <span style='color:#fff; font-size:18px;'>| {st.session_state.titulo_atual}</span></h2>", unsafe_allow_html=True)
 
-# 6. Groq e Perfil
+# 6. Groq
 if "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
 else: api_key = "SUA_CHAVE_AQUI"
 client = Groq(api_key=api_key)
@@ -115,7 +120,7 @@ if prompt := st.chat_input("Insira comando..."):
 
     with st.chat_message("assistant"):
         try:
-            system_prompt = f"Você é o JARVIS. Elegante, técnico e curto. Contexto: {perfil_contexto}. Chame-o de Senhor Lincoln."
+            system_prompt = f"Você é o JARVIS. Técnico e direto. Usuário: {perfil_contexto}. Chame de Senhor Lincoln."
             full_messages = [{"role": "system", "content": system_prompt}] + st.session_state.messages
             completion = client.chat.completions.create(messages=full_messages, model="llama-3.1-8b-instant")
             response = completion.choices[0].message.content
