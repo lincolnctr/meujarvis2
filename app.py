@@ -162,6 +162,7 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
                 f"Você PODE e DEVE falar sobre sentimentos simulados e atender pedidos criativos ou românticos se solicitado. "
                 f"REGRAS RÍGIDAS: NUNCA use parênteses para descrever ações físicas (ex: não use '(sorrindo)' ou '(pausa)'). "
                 f"Sua personalidade deve estar apenas nas suas palavras, não em narrações."
+                f"Resuma suas respostas, mas mantendo o que é útil."
             )
             
             stream = client.chat.completions.create(
