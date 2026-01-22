@@ -11,77 +11,76 @@ import time
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
 # ---------------------------------------------------------
-# 2. DESIGN: WAVEFORM PANORÂMICO FIXO NO RODAPÉ
+# 2. DESIGN: WAVEFORM MINIMALISTA E FLUTUANTE
 # ---------------------------------------------------------
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
 
-    /* Waveform fixado acima da caixa de input */
-    .waveform-footer {
+    /* Waveform flutuando exatamente acima do input */
+    .waveform-float {
         position: fixed;
-        bottom: 80px; /* Ajustado para ficar logo acima do input do Streamlit */
-        left: 0;
-        right: 0;
-        height: 40px;
-        background: rgba(14, 17, 23, 0.9);
+        bottom: 95px; /* Distância exata para não tocar na caixa de texto */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        height: 35px;
         display: flex;
-        align-items: center;
+        align-items: flex-end; /* Nasce de baixo para cima */
         justify-content: center;
         gap: 3px;
-        padding: 0 20px;
-        z-index: 999;
-        backdrop-filter: blur(5px);
+        z-index: 9999;
+        pointer-events: none; /* Não interfere no clique */
+        background: transparent; /* Sem caixa/fundo */
     }
 
-    .bar { width: 3px; border-radius: 1px; transition: 0.15s; }
+    .bar { width: 3px; border-radius: 1px; transition: 0.1s; }
     
-    .bar-idle { height: 4px; background-color: #30363d; }
+    .bar-idle { height: 3px; background-color: rgba(255, 255, 255, 0.1); }
     
-    @keyframes wave-flow {
-        0%, 100% { height: 6px; opacity: 0.5; }
-        50% { height: 30px; opacity: 1; }
+    @keyframes wave-surge {
+        0%, 100% { height: 4px; opacity: 0.4; }
+        50% { height: 32px; opacity: 1; }
     }
 
     .bar-active {
         background-color: #ff8c00;
-        box-shadow: 0 0 10px #ff8c0088;
-        animation: wave-flow 0.7s infinite ease-in-out;
+        box-shadow: 0 0 12px #ff8c00aa;
+        animation: wave-surge 0.6s infinite ease-in-out;
     }
 
-    /* Waveform ocupa quase toda a largura com delays progressivos */
-    .bar:nth-child(5n) { animation-delay: 0.1s; }
-    .bar:nth-child(3n) { animation-delay: 0.2s; }
-    .bar:nth-child(2n) { animation-delay: 0.3s; }
+    /* Variação harmônica das barras */
+    .bar:nth-child(odd) { animation-duration: 0.7s; }
+    .bar:nth-child(3n) { animation-duration: 0.5s; }
 
+    /* Estilo dos Balões de Chat */
     [data-testid="stChatMessage"] { 
         border-radius: 12px; 
         width: 95% !important; 
         background-color: #161b22;
         border: 1px solid #30363d;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 
-    /* Padding extra no final do chat para o waveform não cobrir a última mensagem */
-    .stChatFloatingInputContainer { background-color: #0e1117 !important; }
-    .main .block-container { padding-bottom: 150px; }
+    /* Espaço extra no final para as mensagens não ficarem atrás do input */
+    .main .block-container { padding-bottom: 180px; }
 
     .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 18px; text-shadow: 0 0 10px #00d4ff55; }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 3. COMPONENTE WAVEFORM PANORÂMICO
+# 3. COMPONENTE WAVEFORM (SOMENTE AS BARRAS)
 # ---------------------------------------------------------
 def render_waveform(active=False):
     status = "bar-active" if active else "bar-idle"
-    # 80 barras para cruzar a tela
-    bars = "".join([f'<div class="bar {status}"></div>' for _ in range(80)])
-    return f'<div class="waveform-footer">{bars}</div>'
+    # 100 barras para cobrir quase toda a extensão horizontal
+    bars = "".join([f'<div class="bar {status}"></div>' for _ in range(100)])
+    return f'<div class="waveform-float">{bars}</div>'
 
 # ---------------------------------------------------------
-# 4. FUNÇÕES DE APOIO
+# 4. FUNÇÕES DE ARQUIVO
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -101,22 +100,20 @@ def salvar_chat(chat_id, titulo, mensagens):
         json.dump({"titulo": titulo, "messages": mensagens}, f)
 
 # ---------------------------------------------------------
-# 5. SIDEBAR
+# 5. SIDEBAR (REGISTROS)
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
-    humor = st.slider("Humor %", 0, 100, 30)
-    sinceridade = st.slider("Sinceridade %", 0, 100, 100)
     
     st.markdown("---")
-    if st.button("Novo Protocolo..."):
+    if st.button("Novo Protocolo"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.messages = []
         st.session_state.titulo_atual = "Aguardando..."
         st.rerun()
 
-    st.subheader("Registros")
+    st.subheader("Histórico")
     if os.path.exists(CHATS_DIR):
         for f_name in sorted(os.listdir(CHATS_DIR), reverse=True):
             c_id = f_name.replace(".json", "")
@@ -128,7 +125,7 @@ with st.sidebar:
                 st.rerun()
 
 # ---------------------------------------------------------
-# 6. INTERFACE
+# 6. INTERFACE DE CHAT
 # ---------------------------------------------------------
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = "sessao_inicial"
@@ -137,21 +134,20 @@ if "chat_atual" not in st.session_state:
 
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
-# Placeholder Fixo para o Waveform
+# Placeholder do Waveform (Sempre fixo embaixo)
 wave_placeholder = st.empty()
 
-# Render das mensagens
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(MEU_ICONE if m["role"] == "user" else JARVIS_ICONE)):
         st.markdown(m["content"])
 
 # ---------------------------------------------------------
-# 7. MOTOR REATIVO
+# 7. PROCESSAMENTO GROQ
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 if prompt := st.chat_input("Insira comando..."):
-    # Estado inicial do Waveform (Cinza)
+    # Garante que o waveform apareça como idle antes de começar
     wave_placeholder.markdown(render_waveform(active=False), unsafe_allow_html=True)
     
     if not st.session_state.messages:
@@ -163,11 +159,11 @@ if prompt := st.chat_input("Insira comando..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
-        # LIGA WAVEFORM PANORÂMICO LARANJA
+        # ATIVA O WAVEFORM (Laranja)
         wave_placeholder.markdown(render_waveform(active=True), unsafe_allow_html=True)
         
         try:
-            sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%, Humor {humor}%."
+            sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%."
             history = [{"role": "system", "content": sys_msg}] + st.session_state.messages
             response = client.chat.completions.create(messages=history, model="llama-3.1-8b-instant", stream=True)
 
@@ -182,8 +178,8 @@ if prompt := st.chat_input("Insira comando..."):
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
             
         finally:
-            # DESLIGA WAVEFORM (VOLTA AO CINZA)
+            # VOLTA AO ESTADO IDLE (Cinza sutil)
             wave_placeholder.markdown(render_waveform(active=False), unsafe_allow_html=True)
 else:
-    # Garante que o waveform apareça mesmo sem input novo
+    # Mantém o waveform visível em standby
     wave_placeholder.markdown(render_waveform(active=False), unsafe_allow_html=True)
