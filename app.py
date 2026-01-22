@@ -92,11 +92,15 @@ arquivos = sorted([f for f in os.listdir(CHATS_DIR) if f.endswith(".json")], rev
 for chat_file in arquivos:
     c_id = chat_file.replace(".json", "")
     dados = carregar_chat(c_id)
-    # CORREÇÃO DO ERRO AQUI: Removido o ícone problemático de dentro da string f""
-    if st.sidebar.button(f"ID: {dados['titulo']}", key=c_id):
+    
+    # TRATAMENTO DE ERRO: Se o arquivo for antigo e não tiver a chave 'titulo'
+    # o .get() evita que o sistema trave.
+    nome_exibicao = dados.get('titulo', "Protocolo Antigo")
+    
+    if st.sidebar.button(f"ID: {nome_exibicao}", key=c_id):
         st.session_state.chat_atual = c_id
-        st.session_state.messages = dados['mensagens']
-        st.session_state.titulo_atual = dados['titulo']
+        st.session_state.messages = dados.get('mensagens', [])
+        st.session_state.titulo_atual = nome_exibicao
         st.rerun()
 
 # 5. Lógica de Chat
