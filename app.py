@@ -35,11 +35,16 @@ st.caption("Protocolo de Identidade Ativo - Senhor Lincoln")
 
 # 3. Carregamento do Perfil Personalizado
 def carregar_perfil():
-    if os.path.exists("perfil.txt"):
-        with open("perfil.txt", "r", encoding="utf-8") as f:
-            return f.read()
-    return "Lincoln, brasileiro, organizado e perfeccionista."
-
+    try:
+        if os.path.exists("perfil.txt"):
+            with open("perfil.txt", "r", encoding="utf-8") as f:
+                conteudo = f.read()
+                if conteudo.strip(): # Verifica se não está vazio
+                    return conteudo
+        return "Perfil não encontrado no servidor."
+    except Exception as e:
+        return f"Erro ao ler perfil: {e}"
+        
 perfil_contexto = carregar_perfil()
 
 # 4. Conexão com Groq
