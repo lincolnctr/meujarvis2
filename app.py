@@ -20,7 +20,7 @@ st.set_page_config(
 st.markdown("""
     <style>
     /* COR DE FUNDO DO APP */
-    .stApp { background-color: #0e1117; } 
+    .stApp { background-color: #0b0c0d; } 
 
     /* BARRA LATERAL (SIDEBAR) */
     [data-testid="stSidebar"] { 
