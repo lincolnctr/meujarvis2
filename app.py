@@ -11,70 +11,65 @@ import time
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
 # ---------------------------------------------------------
-# 2. DESIGN: LINHA LARANJA MULTI-TOM (ESTILO HUD AVANÇADO)
+# 2. DESIGN: LINHA DE ENERGIA LARANJA (FIXO NO TOPO DO INPUT)
 # ---------------------------------------------------------
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     
-    /* Linha de Processamento Fixada ACIMA do Input */
-    .stChatFloatingInputContainer {
-        padding-top: 10px; /* Cria espaço para a linha no topo da barra de input */
-    }
-
-    .jarvis-orb-line {
+    /* A LINHA DE ENERGIA */
+    .jarvis-energy-line {
         position: fixed;
-        bottom: 90px; /* Posicionada exatamente acima da borda do chat_input */
+        bottom: 85px; /* Posição exata acima da caixa de texto */
         left: 0;
         width: 100%;
-        height: 4px;
-        z-index: 999999;
-        background: transparent;
-        transition: 0.5s;
+        height: 5px;
+        z-index: 9999999; /* Força ficar por cima de tudo */
+        transition: all 0.5s ease;
     }
 
-    /* Animação de Fluxo de Energia */
-    @keyframes orange-flow {
+    /* Animação de Fluxo Laranja */
+    @keyframes flow-orange {
         0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+        100% { background-position: 200% 50%; }
     }
 
-    /* Estado Ativo: Gradiente com tons de Laranja (Claro, Médio e Escuro) */
-    .active-energy {
-        /* Paleta: Laranja Escuro (#CC4400), Médio (#FF8800), Claro (#FFBB33) */
-        background: linear-gradient(90deg, #CC4400, #FF8800, #FFBB33, #FF8800, #CC4400);
-        background-size: 200% 200%;
-        animation: orange-flow 1.5s linear infinite;
-        box-shadow: 0 -5px 15px rgba(255, 136, 0, 0.4);
+    /* ESTADO ATIVO: Tons de Laranja (Claro, Médio, Escuro) */
+    .energy-active {
+        background: linear-gradient(90deg, #4b1d00, #ff4500, #ff8c00, #ffcc33, #ff8c00, #ff4500, #4b1d00);
+        background-size: 200% auto;
+        animation: flow-orange 1s linear infinite;
+        box-shadow: 0 -8px 20px rgba(255, 69, 0, 0.6);
+        opacity: 1;
     }
 
-    /* Estado Idle: Linha sutil/apagada */
-    .idle-energy {
-        background: rgba(255, 136, 0, 0.05);
-        height: 1px;
+    /* ESTADO IDLE: Linha quase invisível */
+    .energy-idle {
+        background: rgba(255, 140, 0, 0.1);
+        box-shadow: none;
+        opacity: 0.3;
+        height: 2px;
     }
 
-    /* Estilo das Mensagens */
+    /* Espaçamento para o chat não ficar colado na linha */
+    .main .block-container { padding-bottom: 160px; }
+    
+    /* Customização dos balões */
     [data-testid="stChatMessage"] { 
         border-radius: 12px; 
-        width: 95% !important; 
         background-color: #161b22;
         border: 1px solid #30363d;
-        margin-bottom: 10px;
     }
-
-    .main .block-container { padding-bottom: 150px; }
     .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 18px; text-shadow: 0 0 10px #00d4ff55; }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 3. COMPONENTE DE ENERGIA LARANJA
+# 3. COMPONENTE DE RENDERIZAÇÃO
 # ---------------------------------------------------------
-def render_energy_line(active=False):
-    status = "active-energy" if active else "idle-energy"
-    return f'<div class="jarvis-orb-line {status}"></div>'
+def render_energy(active=False):
+    status = "energy-active" if active else "energy-idle"
+    return f'<div class="jarvis-energy-line {status}"></div>'
 
 # ---------------------------------------------------------
 # 4. FUNÇÕES DE MEMÓRIA
@@ -130,34 +125,33 @@ if "chat_atual" not in st.session_state:
 
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
-# Renderização das Mensagens
+# Renderiza histórico
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(MEU_ICONE if m["role"] == "user" else JARVIS_ICONE)):
         st.markdown(m["content"])
 
-# Placeholder da Linha de Energia (Renderizada DEPOIS do histórico para ficar sobreposta)
-energy_placeholder = st.empty()
+# Placeholder da Linha (Renderizada estrategicamente aqui)
+energy_line_placeholder = st.empty()
 
 # ---------------------------------------------------------
-# 7. MOTOR REATIVO COM LUZES LARANJAS
+# 7. MOTOR REATIVO
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-if prompt := st.chat_input("Pergunte o que quiser..."):
-    # Garante que a linha apareça no estado inicial
-    energy_placeholder.markdown(render_energy_line(active=False), unsafe_allow_html=True)
+if prompt := st.chat_input("Comando..."):
+    # Inicializa a linha em idle
+    energy_line_placeholder.markdown(render_energy(active=False), unsafe_allow_html=True)
     
     if not st.session_state.messages:
-        r = client.chat.completions.create(messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}], model="llama-3.1-8b-instant")
-        st.session_state.titulo_atual = r.choices[0].message.content.strip()
+        st.session_state.titulo_atual = "Sessão Ativa"
 
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user", avatar=MEU_ICONE):
         st.markdown(prompt)
 
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
-        # LIGA AS LUZES LARANJAS NO TOPO DA CAIXA
-        energy_placeholder.markdown(render_energy_line(active=True), unsafe_allow_html=True)
+        # ATIVA A LINHA LARANJA NO TOPO DO INPUT
+        energy_line_placeholder.markdown(render_energy(active=True), unsafe_allow_html=True)
         
         try:
             sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%."
@@ -175,8 +169,8 @@ if prompt := st.chat_input("Pergunte o que quiser..."):
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
             
         finally:
-            # DESLIGA A ANIMAÇÃO (Retorna ao estado idle)
-            energy_placeholder.markdown(render_energy_line(active=False), unsafe_allow_html=True)
+            # VOLTA AO ESTADO IDLE
+            energy_line_placeholder.markdown(render_energy(active=False), unsafe_allow_html=True)
 else:
-    # Mantém a linha visível em standby acima do input
-    energy_placeholder.markdown(render_energy_line(active=False), unsafe_allow_html=True)
+    # Garante que a linha esteja visível em standby
+    energy_line_placeholder.markdown(render_energy(active=False), unsafe_allow_html=True)
