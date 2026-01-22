@@ -83,7 +83,7 @@ with st.sidebar:
     humor = st.slider("Humor %", 0, 100, 30)
     
     st.markdown("---")
-    if st.button("⚡ NOVO PROTOCOLO"):
+    if st.button("Novo Protocolo..."):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.messages = []
         st.session_state.titulo_atual = "Aguardando..."
@@ -96,7 +96,7 @@ with st.sidebar:
             dados = carregar_chat(c_id)
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
-                if st.button(f"📄 {dados['titulo']}", key=f"b_{c_id}"):
+                if st.button(f"• {dados['titulo']}", key=f"b_{c_id}"):
                     st.session_state.chat_atual = c_id
                     st.session_state.messages = dados['messages']
                     st.session_state.titulo_atual = dados['titulo']
