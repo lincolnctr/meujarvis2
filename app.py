@@ -38,7 +38,7 @@ st.markdown("""
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
         margin-left: auto !important;     /* <--- ALINHA NA DIREITA */
         margin-right: 0px !important;
-        background-color: #121212;       /* <--- COR DO SEU BALÃO */
+        background-color: #161b22;       /* <--- COR DO SEU BALÃO */
         border: 1px solid #00d4ff55;
     }
 
