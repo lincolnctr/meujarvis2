@@ -36,7 +36,7 @@ st.markdown("""
 
     /* LOGO / TÍTULO PRINCIPAL NO TOPO */
     .jarvis-log {
-        color: #1b578f;                 /* <--- COR DO NOME J.A.R.V.I.S. */
+        color: #286dad;                 /* <--- COR DO NOME J.A.R.V.I.S. */
         font-family: 'monospace';
         font-size: 20px;
         font-weight: bold;
@@ -48,7 +48,7 @@ st.markdown("""
         width: 100%;
         border-radius: 5px;
         background-color: #1d2b3a;      /* <--- COR DO FUNDO DO BOTÃO */
-        color: #00d4ff;                 /* <--- COR DO TEXTO/ÍCONE DO BOTÃO */
+        color: #286dad;                 /* <--- COR DO TEXTO/ÍCONE DO BOTÃO */
         border: 1px solid #30363d;      /* <--- COR DA BORDA DO BOTÃO */
         text-align: left;
     }
@@ -86,7 +86,7 @@ def carregar_chat(chat_id):
 # ---------------------------------------------------------
 with st.sidebar:
     # TÍTULO DA BARRA LATERAL
-    st.markdown("<h2 style='color:#1b578f; font-family:monospace;'>SISTEMA CORE</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#286dad; font-family:monospace;'>SISTEMA CORE</h2>", unsafe_allow_html=True)
     
     # AJUSTES DE PERSONALIDADE (SLIDERS)
     st.subheader("Personalidade")
