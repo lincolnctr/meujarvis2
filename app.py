@@ -1,43 +1,72 @@
 import streamlit as st
 from groq import Groq
 
-# 1. Configuração visual da página (O "Corpo" do Jarvis)
+# 1. Configuração da Página (Sem o escudo agora)
 st.set_page_config(page_title="J.A.R.V.I.S.", page_icon="🤖")
 
-# Estilo para deixar com cara de terminal de tecnologia
+# 2. CSS Customizado para alinhar os balões (Direita para Usuário, Esquerda para Jarvis)
 st.markdown("""
     <style>
+    /* Fundo do App */
     .stApp { background-color: #0e1117; }
-    .stChatMessage { border-radius: 15px; border: 1px solid #00d4ff33; }
-    h1 { color: #00d4ff; text-shadow: 2px 2px #000; }
+    
+    /* Título */
+    h1 { color: #00d4ff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    /* Alinhamento das mensagens */
+    [data-testid="stChatMessage"] {
+        border-radius: 15px;
+        margin-bottom: 10px;
+        width: 80%;
+    }
+
+    /* Estilo para a mensagem do USUÁRIO (Direita) */
+    [data-testid="chatAvatarIcon-user"] {
+        display: none;
+    }
+    div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
+        margin-left: auto;
+        background-color: #1d2b3a;
+        border: 1px solid #00d4ff55;
+    }
+
+    /* Estilo para a mensagem do ASSISTENTE (Esquerda) */
+    div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from assistant"]) {
+        margin-right: auto;
+        background-color: #161b22;
+        border: 1px solid #30363d;
+    }
+    
+    /* Esconde o menu e o footer do Streamlit para ficar mais limpo */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-st.title("J.A.R.V.I.S. 🛡️")
-st.caption("Protocolo de Interface Web - Senhor Lincoln")
+st.title("J.A.R.V.I.S.")
+st.caption("Protocolo de Interface - Senhor Lincoln")
 
-# 2. Conexão com o cérebro (Groq)
-# No Streamlit Cloud, vamos usar 'secrets' para a chave ficar protegida
+# 3. Conexão com a Chave (Usando Secrets)
 if "GROQ_API_KEY" in st.secrets:
     api_key = st.secrets["GROQ_API_KEY"]
 else:
-    # Se você for testar localmente, coloque a chave aqui
-    api_key = st.secrets["GROQ_API_KEY"]
+    api_key = "SUA_CHAVE_AQUI"
 
 client = Groq(api_key=api_key)
 
-# 3. Memória da conversa (Para ele não esquecer o que você disse na mensagem anterior)
+# 4. Memória da Conversa
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Exibe o histórico de mensagens na tela
+# Exibe as mensagens
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 4. Campo de entrada (Onde você digita)
-if prompt := st.chat_input("Em que posso ajudar, Senhor?"):
-    # Adiciona sua pergunta ao histórico
+# 5. Entrada do Usuário
+if prompt := st.chat_input("Comande o sistema..."):
+    # Salva e exibe mensagem do usuário
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -45,8 +74,7 @@ if prompt := st.chat_input("Em que posso ajudar, Senhor?"):
     # Resposta do Jarvis
     with st.chat_message("assistant"):
         try:
-            # Instrução de Personalidade
-            instrucoes = "Você é o JARVIS. Responda de forma elegante, curta, técnica e chame o usuário de Senhor Lincoln. Foque em ser útil e direto."
+            instrucoes = "Você é o JARVIS. Responda de forma elegante, curta, técnica e chame o usuário de Senhor Lincoln."
             
             full_messages = [{"role": "system", "content": instrucoes}] + [
                 {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
@@ -59,9 +87,7 @@ if prompt := st.chat_input("Em que posso ajudar, Senhor?"):
             
             response = completion.choices[0].message.content
             st.markdown(response)
-            
-            # Guarda a resposta dele na memória
             st.session_state.messages.append({"role": "assistant", "content": response})
             
         except Exception as e:
-            st.error(f"Senhor, tive um problema no servidor: {e}")
+            st.error(f"Erro no sistema: {e}")
