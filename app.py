@@ -5,44 +5,52 @@ import json
 import uuid
 
 # ---------------------------------------------------------
-# 1. CONFIGURAÇÕES
+# 1. CONFIGURAÇÕES DE SISTEMA
 # ---------------------------------------------------------
-st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="J.A.R.V.I.S. OS", 
+    page_icon="🤖", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # ---------------------------------------------------------
-# 2. DESIGN E ALINHAMENTO (COM AVATARES PERSONALIZADOS)
+# 2. DESIGN E PERSONALIZAÇÃO (CORES E ALINHAMENTO)
 # ---------------------------------------------------------
 st.markdown("""
     <style>
-    .stApp { background-color: #0e1117; }
+    .stApp { background-color: #0e1117; } 
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
-    
+
+    /* AJUSTE DOS BALÕES DE MENSAGEM */
     [data-testid="stChatMessage"] { border-radius: 15px; margin-bottom: 10px; width: 85%; }
 
-    /* BALÃO DO LINCOLN (DIREITA) */
+    /* BALÃO DO USUÁRIO (LINCOLN) - DIREITA */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
         margin-left: auto !important;
-        background-color: #1d2b3a;
+        background-color: #1d2b3a; /* <--- COR DO SEU BALÃO */
         border: 1px solid #00d4ff55;
     }
 
-    /* BALÃO DO JARVIS (ESQUERDA) */
+    /* BALÃO DA IA (JARVIS) - ESQUERDA */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from assistant"]) {
         margin-right: auto !important;
-        background-color: #161b22;
+        background-color: #161b22; /* <--- COR DO MEU BALÃO */
         border: 1px solid #30363d;
     }
 
+    /* ESTILO DO TÍTULO E BOTÕES */
     button[kind="header"] { color: #00d4ff !important; background-color: rgba(0, 212, 255, 0.1) !important; border-radius: 50% !important; }
     .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 20px; font-weight: bold; padding-left: 50px; }
     .stButton>button { width: 100%; border-radius: 5px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; text-align: left; }
+    
     header { background-color: rgba(0,0,0,0) !important; }
     footer { visibility: hidden; }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 3. FUNÇÕES DE MEMÓRIA (CORREÇÃO DO ERRO DE CHAVE)
+# 3. MEMÓRIA E PERFIL
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -51,19 +59,16 @@ def carregar_perfil():
     if os.path.exists("perfil.txt"):
         with open("perfil.txt", "r", encoding="utf-8") as f:
             return f.read().strip()
-    return "Lincoln, proprietário do sistema J.A.R.V.I.S."
+    return "Lincoln, proprietário do sistema."
 
 def carregar_chat(chat_id):
     caminho = os.path.join(CHATS_DIR, f"{chat_id}.json")
     if os.path.exists(caminho):
         with open(caminho, "r", encoding="utf-8") as f:
             c = json.load(f)
-            if isinstance(c, dict):
-                # Tenta ler 'messages', se não achar, tenta 'mensagens' (compatibilidade)
-                mensagens = c.get('messages', c.get('mensagens', []))
-                return {"titulo": c.get('titulo', "Sessão"), "messages": mensagens}
-            else:
-                return {"titulo": "Antigo", "messages": c}
+            # Compatibilidade com nomes antigos de chaves
+            mensagens = c.get('messages', c.get('mensagens', []))
+            return {"titulo": c.get('titulo', "Sessão"), "messages": mensagens}
     return {"titulo": "Novo Protocolo", "messages": []}
 
 def salvar_chat(chat_id, titulo, mensagens):
@@ -71,7 +76,7 @@ def salvar_chat(chat_id, titulo, mensagens):
         json.dump({"titulo": titulo, "messages": mensagens}, f)
 
 # ---------------------------------------------------------
-# 4. SIDEBAR
+# 4. PAINEL LATERAL
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
@@ -106,7 +111,7 @@ with st.sidebar:
                     st.rerun()
 
 # ---------------------------------------------------------
-# 5. INICIALIZAÇÃO
+# 5. INTERFACE DE CHAT
 # ---------------------------------------------------------
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = "sessao_inicial"
@@ -117,12 +122,14 @@ if "chat_atual" not in st.session_state:
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 6. MOTOR DE INTELIGÊNCIA
+# 6. MOTOR JARVIS (GROQ)
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 dados_perfil = carregar_perfil()
 
+# EXIBIÇÃO COM AVATARES PERSONALIZÁVEIS
 for m in st.session_state.messages:
+    # SINALIZADOR: Altere o emoji abaixo para mudar seu ícone ou o meu
     icone = "👤" if m["role"] == "user" else "🤖" 
     with st.chat_message(m["role"], avatar=icone):
         st.markdown(m["content"])
@@ -136,16 +143,26 @@ if prompt := st.chat_input("Comando..."):
         st.session_state.titulo_atual = r.choices[0].message.content.strip()
 
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user", avatar="👤"):
+    # SINALIZADOR: Avatar do Lincoln aqui
+    with st.chat_message("user", avatar="👤"): 
         st.markdown(prompt)
 
-    with st.chat_message("assistant", avatar="🤖"):
+    # SINALIZADOR: Avatar do JARVIS aqui
+    with st.chat_message("assistant", avatar="🤖"): 
         try:
             sys_prompt = f"""
-            Você é o J.A.R.V.I.S., assistente pessoal de {dados_perfil}.
-            Esqueça presidentes. Foque apenas no Senhor Lincoln usuário.
-            Nível de Sarcasmo: {sarcasmo}% | Humor: {humor}% | Sinceridade: {sinceridade}%
-            Responda curto e direto. Chame de Senhor Lincoln.
+            Você é o J.A.R.V.I.S., a inteligência artificial pessoal do Senhor Lincoln.
+            DADOS DO PROPRIETÁRIO: {dados_perfil}.
+
+            DIRETRIZES DE COMUNICAÇÃO:
+            - NÃO use tópicos ou listas para falar sobre o Senhor Lincoln. 
+            - Fale de forma natural, orgânica e informal, como um braço direito.
+            - Se ele perguntar o que você sabe, responda em parágrafos curtos: "Você é o Lincoln, mora em São Paulo...".
+            - NUNCA mencione Abraham Lincoln ou política americana.
+
+            PERSONALIDADE ATUAL:
+            Sarcasmo {sarcasmo}% | Humor {humor}% | Sinceridade {sinceridade}%
+            Chame-o sempre de Senhor Lincoln. Máximo 3 frases.
             """
             
             full_m = [{"role": "system", "content": sys_prompt}] + st.session_state.messages
@@ -156,4 +173,4 @@ if prompt := st.chat_input("Comando..."):
             st.session_state.messages.append({"role": "assistant", "content": content})
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
         except Exception as e:
-            st.error(f"Erro no Sistema: {e}")
+            st.error(f"Erro: {e}")
