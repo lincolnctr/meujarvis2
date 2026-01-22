@@ -153,12 +153,19 @@ if prompt := st.chat_input("Insira comando..."):
 
     with st.chat_message("assistant"):
         try:
-            system_prompt = f"Você é o JARVIS. Técnico e direto. Usuário: {perfil_contexto}. Chame de Senhor Lincoln."
+            # PROTOCOLO DE RESPOSTA CURTA ATIVADO
+            system_prompt = f"""
+            Você é o JARVIS. 
+            CONTEXTO: {perfil_contexto}.
+            REGRA DE OURO: Responda de forma extremamente curta, técnica e seca. 
+            - Proibido dizer "Olá", "Senhor Lincoln, como posso ajudar?", "Estou à disposição" ou similares.
+            - Responda APENAS o que foi perguntado. Se for uma confirmação, diga apenas "Confirmado" ou "Procedimento concluído".
+            - Use no máximo duas frases por resposta.
+            - Sempre chame o usuário de Senhor Lincoln no final da resposta.
+            """
+            
             full_messages = [{"role": "system", "content": system_prompt}] + st.session_state.messages
             completion = client.chat.completions.create(messages=full_messages, model="llama-3.1-8b-instant")
-            response = completion.choices[0].message.content
-            st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
+            # ... restante do código ...
         except Exception as e:
             st.error(f"Erro: {e}")
