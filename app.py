@@ -5,51 +5,71 @@ import json
 import uuid
 
 # ---------------------------------------------------------
-# 1. CONFIGURAÇÕES DE SISTEMA (NOME E ESTADO INICIAL)
+# 1. CONFIGURAÇÕES DE SISTEMA
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="J.A.R.V.I.S. OS", # <--- NOME NA ABA DO NAVEGADOR
-    page_icon="🤖",               # <--- ÍCONE NA ABA DO NAVEGADOR
+    page_title="J.A.R.V.I.S. OS", 
+    page_icon="🤖", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ---------------------------------------------------------
-# 2. DESIGN E CORES (INTERFACE VISUAL)
+# 2. DESIGN E CORES (SINALIZADORES DE POSICIONAMENTO)
 # ---------------------------------------------------------
 st.markdown("""
     <style>
-    /* COR DE FUNDO DO APP */
-    .stApp { background-color: #0b0c0d; } 
+    .stApp { background-color: #0e1117; } 
 
-    /* BARRA LATERAL (SIDEBAR) */
     [data-testid="stSidebar"] { 
-        background-color: #16181a;      /* <--- COR DO FUNDO DA BARRA */
-        border-right: 1px solid #30363d; /* <--- COR DA BORDA DA BARRA */
+        background-color: #161b22; 
+        border-right: 1px solid #30363d; 
     }
 
-    /* BOTÃO DE ABRIR SIDEBAR (SETA NO MOBILE) */
+    /* --- AJUSTE DOS BALÕES DE MENSAGEM --- */
+    
+    [data-testid="stChatMessage"] { 
+        border-radius: 15px; 
+        margin-bottom: 10px; 
+        width: 85%; /* <--- LARGURA DOS BALÕES */
+    }
+
+    /* BALÃO DO USUÁRIO (LINCOLN) - EMPURRADO PARA A DIREITA */
+    div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
+        margin-left: auto !important;     /* <--- ALINHA NA DIREITA */
+        margin-right: 0px !important;
+        background-color: #1d2b3a;       /* <--- COR DO SEU BALÃO */
+        border: 1px solid #00d4ff55;
+    }
+
+    /* BALÃO DA IA (JARVIS) - EMPURRADO PARA A ESQUERDA */
+    div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from assistant"]) {
+        margin-right: auto !important;    /* <--- ALINHA NA ESQUERDA */
+        margin-left: 0px !important;
+        background-color: #161b22;       /* <--- COR DO MEU BALÃO */
+        border: 1px solid #30363d;
+    }
+
+    /* REPOSICIONAMENTO DA SETA E TÍTULO */
     button[kind="header"] {
-        color: #00d4ff !important;      /* <--- COR DA SETA */
+        color: #00d4ff !important;
         background-color: rgba(0, 212, 255, 0.1) !important;
     }
 
-    /* LOGO / TÍTULO PRINCIPAL NO TOPO */
     .jarvis-log {
-        color: #328ac9;                 /* <--- COR DO NOME J.A.R.V.I.S. */
+        color: #00d4ff;
         font-family: 'monospace';
         font-size: 20px;
         font-weight: bold;
         padding-left: 50px;
     }
 
-    /* BOTÕES GERAIS (NOVO CHAT E REGISTROS) */
     .stButton>button {
         width: 100%;
         border-radius: 5px;
-        background-color: #1d2b3a;      /* <--- COR DO FUNDO DO BOTÃO */
-        color: #286dad;                 /* <--- COR DO TEXTO/ÍCONE DO BOTÃO */
-        border: 1px solid #30363d;      /* <--- COR DA BORDA DO BOTÃO */
+        background-color: #1d2b3a;
+        color: #00d4ff;
+        border: 1px solid #30363d;
         text-align: left;
     }
     
@@ -59,7 +79,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 3. PROCESSAMENTO DE DADOS (CÉREBRO)
+# 3. PROCESSAMENTO DE DADOS
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -85,10 +105,8 @@ def carregar_chat(chat_id):
 # 4. PAINEL DE CONTROLE LATERAL
 # ---------------------------------------------------------
 with st.sidebar:
-    # TÍTULO DA BARRA LATERAL
-    st.markdown("<h2 style='color:#286dad; font-family:monospace;'>SISTEMA CORE</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>SISTEMA CORE</h2>", unsafe_allow_html=True)
     
-    # AJUSTES DE PERSONALIDADE (SLIDERS)
     st.subheader("Personalidade")
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
     sinceridade = st.slider("Sinceridade %", 0, 100, 100)
@@ -96,28 +114,25 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # BOTÃO PARA CRIAR NOVO CHAT
-    if st.button("Novo Protocolo"): # <--- MUDAR NOME DO BOTÃO AQUI
+    if st.button("⚡ NOVO PROTOCOLO"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.messages = []
         st.session_state.titulo_atual = "Aguardando..."
         st.rerun()
     
-    st.subheader("Registros") # <--- TÍTULO DA LISTA DE CHATS
+    st.subheader("Registros")
     if os.path.exists(CHATS_DIR):
         for f_name in sorted(os.listdir(CHATS_DIR), reverse=True):
             c_id = f_name.replace(".json", "")
             dados = carregar_chat(c_id)
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
-                # ÍCONE E TÍTULO DO CHAT SALVO
-                if st.button(f"• {dados['titulo']}", key=f"b_{c_id}"):
+                if st.button(f"📄 {dados['titulo']}", key=f"b_{c_id}"):
                     st.session_state.chat_atual = c_id
                     st.session_state.messages = dados['mensagens']
                     st.session_state.titulo_atual = dados['titulo']
                     st.rerun()
             with col2:
-                # ÍCONE DE DELETAR
                 if st.button("🗑️", key=f"d_{c_id}"):
                     os.remove(os.path.join(CHATS_DIR, f_name))
                     st.rerun()
@@ -131,11 +146,10 @@ if "chat_atual" not in st.session_state:
     st.session_state.messages = d['mensagens']
     st.session_state.titulo_atual = d['titulo']
 
-# TÍTULO QUE APARECE NO TOPO DO CHAT
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 6. MOTOR DE INTELIGÊNCIA (GROQ)
+# 6. MOTOR DE INTELIGÊNCIA
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 perfil = carregar_perfil()
@@ -143,10 +157,8 @@ perfil = carregar_perfil()
 for m in st.session_state.messages:
     with st.chat_message(m["role"]): st.markdown(m["content"])
 
-# CAIXA DE TEXTO ONDE VOCÊ DIGITA
 if prompt := st.chat_input("Insira comando..."): 
     if not st.session_state.messages:
-        # GERAR TÍTULO AUTOMÁTICO
         r = client.chat.completions.create(
             messages=[{"role": "system", "content": "2 palavras de título."}, {"role": "user", "content": prompt}],
             model="llama-3.1-8b-instant"
@@ -158,16 +170,12 @@ if prompt := st.chat_input("Insira comando..."):
 
     with st.chat_message("assistant"):
         try:
-            # LÓGICA DE PERSONALIDADE NO PROMPT
             sys_prompt = f"Você é o JARVIS. Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%. Responda curto, informal e técnico. Chame de Senhor Lincoln."
-            
             full_m = [{"role": "system", "content": sys_prompt}] + st.session_state.messages
             res = client.chat.completions.create(messages=full_m, model="llama-3.1-8b-instant")
             content = res.choices[0].message.content
-            
             st.markdown(content)
             st.session_state.messages.append({"role": "assistant", "content": content})
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
-            
         except Exception as e:
             st.error(f"Erro: {e}")
