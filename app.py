@@ -11,88 +11,82 @@ import time
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
 # ---------------------------------------------------------
-# 2. DESIGN: WAVEFORM NO TOPO E INTERFACE EXPANDIDA
+# 2. DESIGN: WAVEFORM PANORÂMICO FIXO NO RODAPÉ
 # ---------------------------------------------------------
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
 
-    /* Waveform Fixado no Topo */
-    .waveform-top-container {
+    /* Waveform fixado acima da caixa de input */
+    .waveform-footer {
+        position: fixed;
+        bottom: 80px; /* Ajustado para ficar logo acima do input do Streamlit */
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: rgba(14, 17, 23, 0.9);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
-        height: 60px;
-        background: rgba(22, 27, 34, 0.8);
-        border-radius: 15px;
-        border: 1px solid #00d4ff33;
-        margin-bottom: 20px;
-        backdrop-filter: blur(10px);
+        gap: 3px;
+        padding: 0 20px;
+        z-index: 999;
+        backdrop-filter: blur(5px);
     }
 
-    .bar { width: 4px; border-radius: 2px; transition: 0.2s; }
+    .bar { width: 3px; border-radius: 1px; transition: 0.15s; }
     
-    .bar-idle { height: 6px; background-color: #4a4a4a; }
+    .bar-idle { height: 4px; background-color: #30363d; }
     
-    @keyframes wave-surge {
-        0%, 100% { height: 10px; }
-        50% { height: 45px; }
+    @keyframes wave-flow {
+        0%, 100% { height: 6px; opacity: 0.5; }
+        50% { height: 30px; opacity: 1; }
     }
 
     .bar-active {
         background-color: #ff8c00;
-        box-shadow: 0 0 15px #ff8c00aa;
-        animation: wave-surge 0.6s infinite ease-in-out;
+        box-shadow: 0 0 10px #ff8c0088;
+        animation: wave-flow 0.7s infinite ease-in-out;
     }
 
-    /* Delays para as barras */
-    .bar:nth-child(2n) { animation-delay: 0.1s; }
+    /* Waveform ocupa quase toda a largura com delays progressivos */
+    .bar:nth-child(5n) { animation-delay: 0.1s; }
     .bar:nth-child(3n) { animation-delay: 0.2s; }
-    .bar:nth-child(4n) { animation-delay: 0.3s; }
+    .bar:nth-child(2n) { animation-delay: 0.3s; }
 
-    /* Balões de Chat Full-Width */
     [data-testid="stChatMessage"] { 
         border-radius: 12px; 
         width: 95% !important; 
-        max-width: 100% !important; 
         background-color: #161b22;
         border: 1px solid #30363d;
+        margin-bottom: 10px;
     }
 
-    div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
-        margin-left: auto !important;
-        background-color: #1d2b3a;
-        border: 1px solid #00d4ff33;
-    }
+    /* Padding extra no final do chat para o waveform não cobrir a última mensagem */
+    .stChatFloatingInputContainer { background-color: #0e1117 !important; }
+    .main .block-container { padding-bottom: 150px; }
 
-    .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 18px; text-shadow: 0 0 10px #00d4ff; margin-bottom: 10px; }
-    
-    header { background-color: rgba(0,0,0,0) !important; }
-    footer { visibility: hidden; }
+    .jarvis-log { color: #00d4ff; font-family: 'monospace'; font-size: 18px; text-shadow: 0 0 10px #00d4ff55; }
     </style>
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 3. COMPONENTE VISUAL
+# 3. COMPONENTE WAVEFORM PANORÂMICO
 # ---------------------------------------------------------
 def render_waveform(active=False):
     status = "bar-active" if active else "bar-idle"
-    # 25 barras para um visual de cinema
-    bars = "".join([f'<div class="bar {status}"></div>' for _ in range(25)])
-    return f'<div class="waveform-top-container">{bars}</div>'
+    # 80 barras para cruzar a tela
+    bars = "".join([f'<div class="bar {status}"></div>' for _ in range(80)])
+    return f'<div class="waveform-footer">{bars}</div>'
 
 # ---------------------------------------------------------
-# 4. MEMÓRIA E PERSISTÊNCIA (CHATS)
+# 4. FUNÇÕES DE APOIO
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 MEU_ICONE = "👤" 
 JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
-
-def carregar_perfil():
-    return open("perfil.txt", "r").read().strip() if os.path.exists("perfil.txt") else "Lincoln"
 
 def carregar_chat(chat_id):
     caminho = os.path.join(CHATS_DIR, f"{chat_id}.json")
@@ -107,12 +101,10 @@ def salvar_chat(chat_id, titulo, mensagens):
         json.dump({"titulo": titulo, "messages": mensagens}, f)
 
 # ---------------------------------------------------------
-# 5. BARRA LATERAL (REGISTROS E PERSONALIDADE)
+# 5. SIDEBAR
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
-    
-    st.subheader("Personalidade")
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
     humor = st.slider("Humor %", 0, 100, 30)
     sinceridade = st.slider("Sinceridade %", 0, 100, 100)
@@ -126,8 +118,7 @@ with st.sidebar:
 
     st.subheader("Registros")
     if os.path.exists(CHATS_DIR):
-        arquivos = sorted(os.listdir(CHATS_DIR), reverse=True)
-        for f_name in arquivos:
+        for f_name in sorted(os.listdir(CHATS_DIR), reverse=True):
             c_id = f_name.replace(".json", "")
             dados = carregar_chat(c_id)
             if st.button(f"• {dados['titulo']}", key=f"btn_{c_id}"):
@@ -137,38 +128,34 @@ with st.sidebar:
                 st.rerun()
 
 # ---------------------------------------------------------
-# 6. INTERFACE PRINCIPAL
+# 6. INTERFACE
 # ---------------------------------------------------------
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = "sessao_inicial"
     d = carregar_chat("sessao_inicial")
-    st.session_state.messages = d['messages']
-    st.session_state.titulo_atual = d['titulo']
+    st.session_state.messages, st.session_state.titulo_atual = d['messages'], d['titulo']
 
-# Log e Waveform fixo no topo
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
-wave_placeholder = st.empty()
-wave_placeholder.markdown(render_waveform(active=False), unsafe_allow_html=True)
 
-# Container de Mensagens
+# Placeholder Fixo para o Waveform
+wave_placeholder = st.empty()
+
+# Render das mensagens
 for m in st.session_state.messages:
-    icone = MEU_ICONE if m["role"] == "user" else JARVIS_ICONE
-    with st.chat_message(m["role"], avatar=icone):
+    with st.chat_message(m["role"], avatar=(MEU_ICONE if m["role"] == "user" else JARVIS_ICONE)):
         st.markdown(m["content"])
 
 # ---------------------------------------------------------
 # 7. MOTOR REATIVO
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-perfil = carregar_perfil()
 
 if prompt := st.chat_input("Insira comando..."):
-    # Título automático se for a primeira mensagem
+    # Estado inicial do Waveform (Cinza)
+    wave_placeholder.markdown(render_waveform(active=False), unsafe_allow_html=True)
+    
     if not st.session_state.messages:
-        r = client.chat.completions.create(
-            messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}],
-            model="llama-3.1-8b-instant"
-        )
+        r = client.chat.completions.create(messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}], model="llama-3.1-8b-instant")
         st.session_state.titulo_atual = r.choices[0].message.content.strip()
 
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -176,13 +163,12 @@ if prompt := st.chat_input("Insira comando..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
-        # ATIVA O WAVEFORM LARANJA
+        # LIGA WAVEFORM PANORÂMICO LARANJA
         wave_placeholder.markdown(render_waveform(active=True), unsafe_allow_html=True)
         
         try:
-            sys_msg = f"Você é o J.A.R.V.I.S. dono {perfil}. Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%. Seja direto, chame de Senhor Lincoln."
+            sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%, Humor {humor}%."
             history = [{"role": "system", "content": sys_msg}] + st.session_state.messages
-            
             response = client.chat.completions.create(messages=history, model="llama-3.1-8b-instant", stream=True)
 
             def fluidez():
@@ -196,5 +182,8 @@ if prompt := st.chat_input("Insira comando..."):
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
             
         finally:
-            # VOLTA O WAVEFORM PARA CINZA
+            # DESLIGA WAVEFORM (VOLTA AO CINZA)
             wave_placeholder.markdown(render_waveform(active=False), unsafe_allow_html=True)
+else:
+    # Garante que o waveform apareça mesmo sem input novo
+    wave_placeholder.markdown(render_waveform(active=False), unsafe_allow_html=True)
