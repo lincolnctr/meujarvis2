@@ -36,7 +36,7 @@ st.markdown("""
 
     /* LOGO / TÍTULO PRINCIPAL NO TOPO */
     .jarvis-log {
-        color: #286dad;                 /* <--- COR DO NOME J.A.R.V.I.S. */
+        color: #328ac9;                 /* <--- COR DO NOME J.A.R.V.I.S. */
         font-family: 'monospace';
         font-size: 20px;
         font-weight: bold;
