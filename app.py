@@ -6,7 +6,7 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. DESIGN HUD: ESTABILIDADE VISUAL E ROLAGEM SUAVE
+# 1. DESIGN HUD: ESTABILIDADE E ESTÉTICA
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
@@ -14,26 +14,23 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300;400&display=swap');
 
-    /* Unificação de Fonte para evitar saltos visuais */
     html, body, [class*="css"], .stMarkdown, p, div {
         font-family: 'JetBrains Mono', monospace !important;
     }
 
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     
-    /* LOGO J.A.R.V.I.S. BRILHANTE */
     .jarvis-header {
         font-family: 'Orbitron', sans-serif !important;
         font-size: 42px;
         font-weight: 700;
         color: #00d4ff;
         letter-spacing: 5px;
-        text-shadow: 0 0 15px #00d4ffaa, 0 0 30px #00d4ff33;
+        text-shadow: 0 0 15px #00d4ffaa;
         animation: glow 3s infinite alternate;
         margin-bottom: 5px;
     }
 
-    /* MOLDURA DE ENERGIA LARANJA */
     .jarvis-active-border {
         border: 2px solid #ff8c00;
         border-radius: 12px;
@@ -52,12 +49,9 @@ st.markdown("""
     }
 
     @keyframes glow {
-        from { text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff44; }
-        to { text-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff88; }
+        from { text-shadow: 0 0 10px #00d4ff; }
+        to { text-shadow: 0 0 25px #00d4ff; }
     }
-
-    /* Scroll Suave */
-    html { scroll-behavior: smooth; }
     </style>
     
     <script>
@@ -73,21 +67,18 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. INICIALIZAÇÃO DE ESTADOS
+# 2. SISTEMA DE MEMÓRIA
 # ---------------------------------------------------------
+CHATS_DIR = "chats_db"
+if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
+JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
+
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "titulo_atual" not in st.session_state:
     st.session_state.titulo_atual = "SESSÃO INICIAL"
-
-# ---------------------------------------------------------
-# 3. SISTEMA DE MEMÓRIA
-# ---------------------------------------------------------
-CHATS_DIR = "chats_db"
-if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
-JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
 
 def carregar_chat(chat_id):
     path = os.path.join(CHATS_DIR, f"{chat_id}.json")
@@ -100,13 +91,13 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# 4. CORE OS: CONTROLES
+# 3. CORE OS: CONTROLES
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
-    humor = st.slider("Humor %", 0, 100, 20)
-    sinceridade = st.slider("Sinceridade %", 0, 100, 100)
+    humor = st.slider("Humor %", 0, 100, 50) # Aumentado para o equilíbrio 50/50
+    sinceridade = st.slider("Sinceridade %", 0, 100, 80)
     
     st.markdown("---")
     if st.button("+ NOVO PROTOCOLO"):
@@ -130,10 +121,10 @@ with st.sidebar:
                 st.rerun()
 
 # ---------------------------------------------------------
-# 5. INTERFACE HUD
+# 4. INTERFACE E PROCESSAMENTO
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
-st.markdown(f"<div style='color:#888; font-size:12px; letter-spacing:2px;'>SISTEMA ATIVO // PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
+st.markdown(f"<div style='color:#888; font-size:12px;'>PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(None if m["role"]=="user" else JARVIS_ICONE)):
@@ -141,12 +132,12 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
+if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     
     if not st.session_state.messages:
         try:
             res_t = client.chat.completions.create(
-                messages=[{"role": "system", "content": "Crie um título de 2 palavras para o assunto."}, 
+                messages=[{"role": "system", "content": "Título de 2 palavras para o assunto."}, 
                           {"role": "user", "content": prompt}],
                 model="llama-3.1-8b-instant"
             )
@@ -162,12 +153,15 @@ if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
         response_placeholder = st.empty()
         full_res = ""
         try:
-            # INSTRUÇÕES DE PERSONALIDADE RÍGIDAS PARA EVITAR NARRATIVAS
+            # PROMPT 50/50: Assistente fiel, com personalidade, mas sem ser teatral.
             sys_msg = (
-                f"Você é o J.A.R.V.I.S. Responda ao Senhor Lincoln de forma direta, séria e ultra-eficiente. "
+                f"Você é o J.A.R.V.I.S., a inteligência artificial pessoal do Senhor Lincoln. "
+                f"Aja como um assistente britânico sofisticado, leal e levemente sarcástico. "
                 f"Nível de Sarcasmo: {sarcasmo}%. Humor: {humor}%. Sinceridade: {sinceridade}%. "
-                f"PROIBIDO usar parênteses para descrever ações, emoções ou gestos (como pausas, sorrisos ou risos). "
-                f"Não narre seu estado emocional. Seja um sistema de IA avançado e conciso."
+                f"EQUILÍBRIO: Seja útil e direto, mas mantenha o charme e a personalidade. "
+                f"Você PODE e DEVE falar sobre sentimentos simulados e atender pedidos criativos ou românticos se solicitado. "
+                f"REGRAS RÍGIDAS: NUNCA use parênteses para descrever ações físicas (ex: não use '(sorrindo)' ou '(pausa)'). "
+                f"Sua personalidade deve estar apenas nas suas palavras, não em narrações."
             )
             
             stream = client.chat.completions.create(
@@ -179,7 +173,7 @@ if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
-                    time.sleep(0.04) # Velocidade de digitação elegante
+                    time.sleep(0.04)
             
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
