@@ -6,7 +6,7 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. DESIGN HUD: UNIFICAÇÃO DE FONTE E ROLAGEM SUAVE
+# 1. DESIGN HUD: ESTABILIDADE VISUAL E ROLAGEM SUAVE
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
@@ -14,31 +14,32 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300;400&display=swap');
 
-    /* Define a fonte JetBrains Mono para TODO o app para evitar o 'salto' */
+    /* Unificação de Fonte para evitar saltos visuais */
     html, body, [class*="css"], .stMarkdown, p, div {
         font-family: 'JetBrains Mono', monospace !important;
     }
 
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     
-    /* LOGO J.A.R.V.I.S. */
+    /* LOGO J.A.R.V.I.S. BRILHANTE */
     .jarvis-header {
         font-family: 'Orbitron', sans-serif !important;
         font-size: 42px;
         font-weight: 700;
         color: #00d4ff;
         letter-spacing: 5px;
-        text-shadow: 0 0 15px #00d4ffaa;
+        text-shadow: 0 0 15px #00d4ffaa, 0 0 30px #00d4ff33;
         animation: glow 3s infinite alternate;
+        margin-bottom: 5px;
     }
 
-    /* MOLDURA DE ENERGIA (Sem alteração de fonte) */
+    /* MOLDURA DE ENERGIA LARANJA */
     .jarvis-active-border {
         border: 2px solid #ff8c00;
-        border-radius: 15px;
+        border-radius: 12px;
         padding: 20px;
-        background: rgba(22, 27, 34, 0.9);
-        box-shadow: 0 0 25px rgba(255, 140, 0, 0.3);
+        background: rgba(22, 27, 34, 0.95);
+        box-shadow: 0 0 25px rgba(255, 140, 0, 0.25);
         animation: pulse-orange 2s infinite;
         margin-top: 10px;
         line-height: 1.6;
@@ -51,24 +52,21 @@ st.markdown("""
     }
 
     @keyframes glow {
-        from { text-shadow: 0 0 10px #00d4ff; }
-        to { text-shadow: 0 0 25px #00d4ff; }
+        from { text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff44; }
+        to { text-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff88; }
     }
 
-    /* Esconde a barra de progresso padrão do Streamlit para não poluir o HUD */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+    /* Scroll Suave */
+    html { scroll-behavior: smooth; }
     </style>
     
     <script>
-    // Função para manter o scroll suave no fundo da página
     function scrollToBottom() {
-        window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: 'smooth'
-        });
+        const mainContent = window.parent.document.querySelector(".main");
+        if (mainContent) {
+            mainContent.scrollTo({ top: mainContent.scrollHeight, behavior: 'smooth' });
+        }
     }
-    // Observador para rodar o scroll sempre que o conteúdo mudar
     const observer = new MutationObserver(scrollToBottom);
     observer.observe(document.body, { childList: true, subtree: true });
     </script>
@@ -102,12 +100,12 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# 4. CORE OS: SIDEBAR
+# 4. CORE OS: CONTROLES
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
-    humor = st.slider("Humor %", 0, 100, 30)
+    humor = st.slider("Humor %", 0, 100, 20)
     sinceridade = st.slider("Sinceridade %", 0, 100, 100)
     
     st.markdown("---")
@@ -135,21 +133,21 @@ with st.sidebar:
 # 5. INTERFACE HUD
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
-st.markdown(f"<div style='color:#888; font-size:14px;'>PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
+st.markdown(f"<div style='color:#888; font-size:12px; letter-spacing:2px;'>SISTEMA ATIVO // PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
-# Container para mensagens antigas
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(None if m["role"]=="user" else JARVIS_ICONE)):
         st.markdown(m["content"])
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-if prompt := st.chat_input("Comando, Senhor Lincoln..."):
+if prompt := st.chat_input("Insira o comando, Senhor Lincoln..."):
     
     if not st.session_state.messages:
         try:
             res_t = client.chat.completions.create(
-                messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}],
+                messages=[{"role": "system", "content": "Crie um título de 2 palavras para o assunto."}, 
+                          {"role": "user", "content": prompt}],
                 model="llama-3.1-8b-instant"
             )
             st.session_state.titulo_atual = res_t.choices[0].message.content.upper().replace('"', '')
@@ -164,7 +162,14 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         response_placeholder = st.empty()
         full_res = ""
         try:
-            sys_msg = f"Você é o J.A.R.V.I.S. Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
+            # INSTRUÇÕES DE PERSONALIDADE RÍGIDAS PARA EVITAR NARRATIVAS
+            sys_msg = (
+                f"Você é o J.A.R.V.I.S. Responda ao Senhor Lincoln de forma direta, séria e ultra-eficiente. "
+                f"Nível de Sarcasmo: {sarcasmo}%. Humor: {humor}%. Sinceridade: {sinceridade}%. "
+                f"PROIBIDO usar parênteses para descrever ações, emoções ou gestos (como pausas, sorrisos ou risos). "
+                f"Não narre seu estado emocional. Seja um sistema de IA avançado e conciso."
+            )
+            
             stream = client.chat.completions.create(
                 messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages,
                 model="llama-3.1-8b-instant", stream=True
@@ -173,9 +178,8 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
-                    # Renderização com a mesma fonte do restante do sistema
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
-                    time.sleep(0.04)
+                    time.sleep(0.04) # Velocidade de digitação elegante
             
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
