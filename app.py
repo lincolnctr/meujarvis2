@@ -4,23 +4,30 @@ import os
 import json
 import uuid
 
-# 1. Configuração da Página
-st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
+# 1. Configuração da Página - Ajustada para Mobile
+st.set_page_config(
+    page_title="J.A.R.V.I.S. OS", 
+    page_icon="🤖", 
+    layout="wide",
+    initial_sidebar_state="expanded"  # Força a barra lateral a iniciar aberta
+)
 
-# 2. CSS Estilizado (Cores frias e chat alinhado)
+# Adicione isso ao seu CSS (dentro do st.markdown de estilo) para melhorar o toque no celular
 st.markdown("""
     <style>
-    .stApp { background-color: #0e1117; }
-    [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
-    h1 { color: #00d4ff; font-family: 'Segoe UI', sans-serif; }
-    [data-testid="stChatMessage"] { border-radius: 15px; margin-bottom: 10px; width: 80%; }
-    div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
-        margin-left: auto; background-color: #1d2b3a; border: 1px solid #00d4ff55;
+    /* Faz os botões da sidebar ficarem mais fáceis de clicar no celular */
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        height: 3em;
+        background-color: #1d2b3a;
+        color: #00d4ff;
+        border: 1px solid #30363d;
     }
-    div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from assistant"]) {
-        margin-right: auto; background-color: #161b22; border: 1px solid #30363d;
+    /* Ajuste para o input de texto não sumir no teclado do celular */
+    .stChatInputContainer {
+        padding-bottom: 20px;
     }
-    #MainMenu, footer, header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
