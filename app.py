@@ -97,7 +97,7 @@ with st.sidebar:
     st.markdown("---")
     
     # BOTÃO PARA CRIAR NOVO CHAT
-    if st.button("⚡ NOVO PROTOCOLO"): # <--- MUDAR NOME DO BOTÃO AQUI
+    if st.button("Novo Protocolo"): # <--- MUDAR NOME DO BOTÃO AQUI
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.messages = []
         st.session_state.titulo_atual = "Aguardando..."
@@ -111,7 +111,7 @@ with st.sidebar:
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
                 # ÍCONE E TÍTULO DO CHAT SALVO
-                if st.button(f"📄 {dados['titulo']}", key=f"b_{c_id}"):
+                if st.button(f"• {dados['titulo']}", key=f"b_{c_id}"):
                     st.session_state.chat_atual = c_id
                     st.session_state.messages = dados['mensagens']
                     st.session_state.titulo_atual = dados['titulo']
