@@ -11,44 +11,42 @@ import time
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide", initial_sidebar_state="expanded")
 
 # ---------------------------------------------------------
-# 2. DESIGN MINIMALISTA E ANIMAÇÕES FLUIDAS
+# 2. DESIGN MINIMALISTA (ESTILO "CHAMBER")
 # ---------------------------------------------------------
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; } 
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; }
     
-    /* Fade-in Suave para as mensagens */
+    /* Fade-in suave dos balões */
     @keyframes messageFade {
-        from { opacity: 0; transform: translateY(5px); }
+        from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
     [data-testid="stChatMessage"] { 
         border-radius: 12px; 
-        margin-bottom: 12px; 
-        width: 80%; 
-        animation: messageFade 0.6s ease-out;
-        border: 1px solid transparent;
+        margin-bottom: 15px; 
+        width: 75%; /* Mais estreito para elegância */
+        animation: messageFade 0.7s ease-out;
     }
 
-    /* Brilho sutil no título J.A.R.V.I.S. */
-    @keyframes softPulse {
-        0% { opacity: 0.8; text-shadow: 0 0 5px #00d4ff; }
+    /* Brilho do Título */
+    @keyframes glow {
+        0%, 100% { opacity: 0.8; text-shadow: 0 0 5px #00d4ff; }
         50% { opacity: 1; text-shadow: 0 0 15px #00d4ff; }
-        100% { opacity: 0.8; text-shadow: 0 0 5px #00d4ff; }
     }
 
     .jarvis-log {
         color: #00d4ff;
         font-family: 'monospace';
         font-size: 18px;
-        letter-spacing: 2px;
-        animation: softPulse 4s infinite ease-in-out;
-        padding: 10px 0 20px 50px;
+        animation: glow 3s infinite ease-in-out;
+        padding: 15px 0 15px 50px;
+        letter-spacing: 1px;
     }
 
-    /* Alinhamento de Balões */
+    /* Balões de Chat */
     div[data-testid="stChatMessage"]:has(div[aria-label="Chat message from user"]) {
         margin-left: auto !important;
         background-color: #1d2b3a;
@@ -61,9 +59,8 @@ st.markdown("""
         border: 1px solid #30363d;
     }
 
-    /* Customização de botões e inputs */
-    .stButton>button { border-radius: 8px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; transition: 0.3s; }
-    .stButton>button:hover { border-color: #00d4ff; background-color: #161b22; }
+    /* Interface Sidebar */
+    .stButton>button { border-radius: 8px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; }
     
     header { background-color: rgba(0,0,0,0) !important; }
     footer { visibility: hidden; }
@@ -71,7 +68,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 3. MEMÓRIA E CONFIGURAÇÃO
+# 3. MEMÓRIA E AVATARES
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -98,7 +95,7 @@ def salvar_chat(chat_id, titulo, mensagens):
         json.dump({"titulo": titulo, "messages": mensagens}, f)
 
 # ---------------------------------------------------------
-# 4. PAINEL LATERAL (CORE)
+# 4. PAINEL LATERAL
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
@@ -133,7 +130,7 @@ with st.sidebar:
                     st.rerun()
 
 # ---------------------------------------------------------
-# 5. INTERFACE DE COMUNICAÇÃO
+# 5. TELA DE CHAT
 # ---------------------------------------------------------
 if "chat_atual" not in st.session_state:
     st.session_state.chat_atual = "sessao_inicial"
@@ -144,7 +141,7 @@ if "chat_atual" not in st.session_state:
 st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 6. MOTOR DE RESPOSTA (ESTILO DIGITAÇÃO)
+# 6. MOTOR DE FLUIDEZ (ESTILO WORD-BY-WORD)
 # ---------------------------------------------------------
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 perfil_data = carregar_perfil()
@@ -154,7 +151,7 @@ for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=icone):
         st.markdown(m["content"])
 
-if prompt := st.chat_input("Insira comando, Senhor Lincoln..."):
+if prompt := st.chat_input("Comando..."):
     if not st.session_state.messages:
         r = client.chat.completions.create(
             messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}],
@@ -169,11 +166,9 @@ if prompt := st.chat_input("Insira comando, Senhor Lincoln..."):
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
         try:
             sys_prompt = f"""
-            Você é o J.A.R.V.I.S.
-            Contexto do usuário: {perfil_data}.
-            Parâmetros: Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%.
-            Instrução: Seja direto, informal e técnico. Máximo 3 frases. 
-            NUNCA use listas. Sempre chame de Senhor Lincoln.
+            Você é o J.A.R.V.I.S., IA pessoal de {perfil_data}.
+            Fale naturalmente, parágrafos curtos, técnico e direto.
+            Chame de Senhor Lincoln. Sarcasmo {sarcasmo}%, Humor {humor}%.
             """
             
             full_m = [{"role": "system", "content": sys_prompt}] + st.session_state.messages
@@ -184,18 +179,17 @@ if prompt := st.chat_input("Insira comando, Senhor Lincoln..."):
                 stream=True
             )
 
-            # Função de escrita com delay humanizado
-            def typing_effect():
+            # Função de Escrita Fluida (Igual ao ChatGPT)
+            def fluidez_total():
                 for chunk in response:
                     if chunk.choices[0].delta.content:
-                        text = chunk.choices[0].delta.content
-                        for char in text:
-                            yield char
-                            time.sleep(0.015) # <--- Controla a suavidade da letra
+                        yield chunk.choices[0].delta.content
+                        time.sleep(0.01) # Delay leve entre chunks de texto
 
-            content = st.write_stream(typing_effect())
+            # O write_stream do Streamlit é otimizado para chunks
+            content = st.write_stream(fluidez_total())
             
             st.session_state.messages.append({"role": "assistant", "content": content})
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
         except Exception as e:
-            st.error(f"Erro no processamento: {e}")
+            st.error(f"Erro: {e}")
