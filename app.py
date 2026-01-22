@@ -50,7 +50,7 @@ if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 # Se colocar um link, certifique-se que termina em .png ou .jpg
 # Se der erro, o sistema usará o padrão "user" e "assistant"
 MEU_ICONE = "👤"  # <--- SEU ÍCONE AQUI
-JARVIS_ICONE = "https://cdn-icons-png.flaticon.com/512/4712/4712139.png" # <--- ÍCONE DO JARVIS AQUI
+JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png" # <--- ÍCONE DO JARVIS AQUI
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
