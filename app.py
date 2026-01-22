@@ -4,7 +4,7 @@ import os
 import json
 import uuid
 
-# 1. Configuração da Página - Forçar Sidebar aberta no carregamento
+# 1. Configuração da Página
 st.set_page_config(
     page_title="J.A.R.V.I.S. OS", 
     page_icon="🤖", 
@@ -12,47 +12,57 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. CSS Estilizado com Correção da Seta (Sidebar)
+# 2. CSS Ultra-Refinado para Mobile
 st.markdown("""
     <style>
+    /* Fundo principal */
     .stApp { background-color: #0e1117; }
-    [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; min-width: 250px; }
     
-    /* REPOSICIONAMENTO DA SETA NO CELULAR */
-    [data-testid="stSidebarCollapsedControl"] {
+    /* Estilização da Sidebar */
+    [data-testid="stSidebar"] { 
+        background-color: #161b22; 
+        border-right: 1px solid #30363d; 
+    }
+
+    /* FORÇAR A SETA A APARECER E FICAR NA COR CERTA */
+    button[kind="header"] {
+        color: #00d4ff !important;
+        background-color: rgba(0, 212, 255, 0.1) !important;
+        border-radius: 50% !important;
+    }
+
+    /* Ajuste do Título para não bater na seta */
+    .jarvis-log {
+        color: #00d4ff;
+        font-family: 'monospace';
+        font-size: 22px;
+        font-weight: bold;
+        padding-left: 50px; /* Abre espaço para a seta no mobile */
+        margin-top: -10px;
+    }
+
+    /* Botões de Chat na Lateral */
+    .stButton>button {
+        width: 100%;
+        border-radius: 5px;
         background-color: #1d2b3a;
         color: #00d4ff;
-        border-radius: 0 10px 10px 0;
-        top: 10px; /* Garante que ela não suba demais */
-        display: flex !important; /* Força a exibição */
+        border: 1px solid #30363d;
+        text-align: left;
+        margin-bottom: 5px;
     }
 
-    .jarvis-header { 
-        color: #00d4ff; 
-        font-family: 'monospace'; 
-        font-weight: bold; 
-        font-size: 20px; 
-        border-bottom: 2px solid #00d4ff; 
-        padding-bottom: 10px; 
-        margin-bottom: 20px; 
+    /* Esconde apenas a barra cinza, mas mantém os botões de controle */
+    header {
+        background-color: rgba(0,0,0,0) !important;
+        border-bottom: none !important;
     }
-
-    /* Ajuste para o Título não colidir com a seta */
-    .main-title {
-        margin-left: 45px; /* Abre espaço para a seta no mobile */
-    }
-
-    .stButton>button { width: 100%; border-radius: 5px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; text-align: left; }
-    
-    /* Esconde o header padrão mas mantém os controles necessários */
-    header { visibility: hidden; }
-    header [data-testid="stSidebarCollapsedControl"] { visibility: visible; }
     
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Funções de Sistema (Inteligentes)
+# 3. Funções de Sistema
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 
@@ -84,9 +94,9 @@ def gerar_titulo_ia(primeira_pergunta, client):
         return resp.choices[0].message.content.strip()
     except: return "Sessão Ativa"
 
-# 4. Sidebar - Central de Controle
+# 4. Sidebar
 with st.sidebar:
-    st.markdown("<div class='jarvis-header'>SISTEMA CORE</div>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#00d4ff; font-family:monospace;'>CORE OS</h2>", unsafe_allow_html=True)
     
     if st.button("⚡ NOVO PROTOCOLO"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
@@ -95,7 +105,6 @@ with st.sidebar:
         st.rerun()
     
     st.markdown("---")
-    st.subheader("Registros")
     
     arquivos = sorted([f for f in os.listdir(CHATS_DIR) if f.endswith(".json")], reverse=True)
     for chat_file in arquivos:
@@ -103,7 +112,6 @@ with st.sidebar:
         dados = carregar_chat(c_id)
         tit = dados.get('titulo', "Sessão")
         
-        # Colunas para Chat e Deletar
         col1, col2 = st.columns([0.8, 0.2])
         with col1:
             if st.button(f"📄 {tit}", key=f"btn_{c_id}"):
@@ -123,7 +131,7 @@ if "chat_atual" not in st.session_state:
     st.session_state.messages = d['mensagens']
     st.session_state.titulo_atual = d['titulo']
 
-st.markdown(f"<h2 style='color:#00d4ff;'>J.A.R.V.I.S. <span style='color:#fff; font-size:18px;'>| {st.session_state.titulo_atual}</span></h2>", unsafe_allow_html=True)
+st.markdown(f"<div class='jarvis-log'>J.A.R.V.I.S. | {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
 
 # 6. Groq
 if "GROQ_API_KEY" in st.secrets: api_key = st.secrets["GROQ_API_KEY"]
