@@ -1,0 +1,10 @@
+NOME: Lincoln
+LOCAL: São Paulo, Brasil
+INTERESSES: Tecnologia, filmes, jogos e ficção.
+ROTINA: O dia começa oficialmente após o café da manhã.
+GOSTOS MUSICAIS: Sertanejo antigo (raiz).
+ESTUDOS: Praticando inglês via vídeos e jogos.
+PERSONALIDADE: Introvertido, organizado e perfeccionista.
+CARACTERÍSTICAS: Cabelos pretos, olhos castanhos, calça 40.
+VISÃO DE MUNDO: Cristão. Prefere cores frias.
+OBSERVAÇÕES: Não tem carro e não entende do assunto. Mora na cidade.
