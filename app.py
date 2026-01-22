@@ -12,18 +12,43 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. CSS Estilizado
+# 2. CSS Estilizado com Correção da Seta (Sidebar)
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; }
     [data-testid="stSidebar"] { background-color: #161b22; border-right: 1px solid #30363d; min-width: 250px; }
-    .jarvis-header { color: #00d4ff; font-family: 'monospace'; font-weight: bold; font-size: 24px; border-bottom: 2px solid #00d4ff; padding-bottom: 10px; margin-bottom: 20px; }
+    
+    /* REPOSICIONAMENTO DA SETA NO CELULAR */
+    [data-testid="stSidebarCollapsedControl"] {
+        background-color: #1d2b3a;
+        color: #00d4ff;
+        border-radius: 0 10px 10px 0;
+        top: 10px; /* Garante que ela não suba demais */
+        display: flex !important; /* Força a exibição */
+    }
+
+    .jarvis-header { 
+        color: #00d4ff; 
+        font-family: 'monospace'; 
+        font-weight: bold; 
+        font-size: 20px; 
+        border-bottom: 2px solid #00d4ff; 
+        padding-bottom: 10px; 
+        margin-bottom: 20px; 
+    }
+
+    /* Ajuste para o Título não colidir com a seta */
+    .main-title {
+        margin-left: 45px; /* Abre espaço para a seta no mobile */
+    }
+
     .stButton>button { width: 100%; border-radius: 5px; background-color: #1d2b3a; color: #00d4ff; border: 1px solid #30363d; text-align: left; }
     
-    /* Estilo dos balões para mobile */
-    [data-testid="stChatMessage"] { border-radius: 15px; margin-bottom: 10px; font-size: 14px; }
+    /* Esconde o header padrão mas mantém os controles necessários */
+    header { visibility: hidden; }
+    header [data-testid="stSidebarCollapsedControl"] { visibility: visible; }
     
-    #MainMenu, footer, header {visibility: hidden;}
+    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
