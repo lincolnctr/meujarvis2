@@ -24,7 +24,7 @@ st.markdown("""
 
     /* BARRA LATERAL (SIDEBAR) */
     [data-testid="stSidebar"] { 
-        background-color: #282e30;      /* <--- COR DO FUNDO DA BARRA */
+        background-color: #16181a;      /* <--- COR DO FUNDO DA BARRA */
         border-right: 1px solid #30363d; /* <--- COR DA BORDA DA BARRA */
     }
 
