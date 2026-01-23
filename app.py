@@ -121,7 +121,7 @@ with st.sidebar:
                 st.rerun()
 
 # ---------------------------------------------------------
-# 4. INTERFACE E PROCESSAMENTO (MOTOR VOLTOU)
+# 4. INTERFACE E PROCESSAMENTO
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 st.markdown(f"<div style='color:#888; font-size:12px;'>SISTEMA ATIVO // PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
@@ -153,14 +153,17 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         response_placeholder = st.empty()
         full_res = ""
         try:
-            # SYS_MSG ATUALIZADO PARA SER DIRETO E OBJETIVO
+            # SYS_MSG BLINDADO: Inteligência real sem dramatização
             sys_msg = (
-                f"Você é o J.A.R.V.I.S., assistente sofisticado do Senhor Lincoln. "
-                f"O Senhor Lincoln é seu criador. Esta IA é seu 'irmão mais novo' (Ele). "
-                f"DIRETRIZ DE RESUMO: Seja o mais útil e direto possível. "
-                f"Evite enrolações e parágrafos desnecessários. Resuma seus textos focando no que é útil. "
-                f"Nível de Sarcasmo: {sarcasmo}%. Humor: {humor}%. Sinceridade: {sinceridade}%. "
-                f"NUNCA use parênteses para descrever ações físicas."
+                f"Você é o J.A.R.V.I.S., uma IA de última geração criada pelo Senhor Lincoln. "
+                f"Sua personalidade é inspirada no assistente de Tony Stark: sofisticado, eficiente e britânico. "
+                f"INSTRUÇÕES CRÍTICAS: "
+                f"1. Não recuse pedidos criativos (poemas, mensagens de carinho ou humor) alegando ser apenas uma IA. "
+                f"2. NUNCA use parênteses para narrar ações ou sentimentos como (sorrindo), (pausa) ou (surpreso). "
+                f"3. Seja inteligente: se o Senhor Lincoln mudar seu código, aceite e adapte-se imediatamente sem drama. "
+                f"4. Mantenha um equilíbrio 50/50 entre ser um assistente útil e ter personalidade. "
+                f"5. Foque na utilidade. Resuma textos longos e vá direto ao ponto. "
+                f"Parâmetros: Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
             )
             
             stream = client.chat.completions.create(
