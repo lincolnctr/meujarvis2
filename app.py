@@ -282,4 +282,4 @@ REGRAS IMUTÁVEIS:
                 response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
 
     st.session_state.processed_prompt = None
-                    
+
