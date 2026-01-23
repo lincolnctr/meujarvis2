@@ -13,7 +13,7 @@ TAMANHO_FONTE = 15
 COR_JARVIS = "#00d4ff"
 COR_GLOW_IA = "#ff8c00"
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
-USER_ICONE = "https://i.postimg.cc/P5XWGZ9g/ec447bce1f2120c3b0e739e01577b105.jpg"
+USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg"
 # =========================================================
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
@@ -82,7 +82,7 @@ with st.sidebar:
                 st.session_state.chat_atual = cid
                 st.session_state.messages = dados['messages']
                 st.rerun()
-            if col_del.button("🗑️", key=f"d_{cid}"):
+            if col_del.button("×", key=f"d_{cid}"):
                 os.remove(os.path.join(CHATS_DIR, f))
                 st.rerun()
             with col_rename:
