@@ -40,8 +40,8 @@ if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{u
 if "messages" not in st.session_state: st.session_state.messages = []
 if "processed_prompt" not in st.session_state: st.session_state.processed_prompt = None
 if "log_modificacoes" not in st.session_state: st.session_state.log_modificacoes = []
-if "humor_nivel" not in st.session_state: st.session_state.humor_nivel = 20
-if "sinceridade_nivel" not in st.session_state: st.session_state.sinceridade_nivel = 50
+if "humor_nivel" not in st.session_state: st.session_state.humor_nivel = 59
+if "sinceridade_nivel" not in st.session_state: st.session_state.sinceridade_nivel = 75
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -62,7 +62,7 @@ def salvar_chat(chat_id, titulo, msgs):
 # Sidebar
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
-    sarcasmo = st.slider("Sarcasmo %", 0, 100, 30, key="sarcasmo_slider")
+    sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
     humor = st.slider("Humor %", 0, 100, st.session_state.humor_nivel, key="humor_slider")
     st.session_state.humor_nivel = humor
     sinceridade = st.slider("Sinceridade %", 0, 100, st.session_state.sinceridade_nivel, key="sinceridade_slider")
@@ -287,4 +287,3 @@ REGRAS IMUTÁVEIS:
                 response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
 
     st.session_state.processed_prompt = None
-
