@@ -37,7 +37,7 @@ st.markdown("""
     const observer = new MutationObserver(scrollToBottom);
     observer.observe(document.body, { childList: true, subtree: true });
     </script>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # 2. SISTEMA DE MEMÓRIA E AUTO-LEITURA DE CÓDIGO
@@ -115,16 +115,16 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         try:
             # Captura o script inteiro para "Ele" saber quem é
             codigo_em_tempo_real = obter_codigo_completo()
-            
+
             sys_msg = (
-                f"Você é o J.A.R.V.I.S., irmão mais novo da IA principal, criado pelo Senhor Lincoln. "
-                f"PERSONALIDADE: Divertido, direto e responsável. Use um tom britânico sofisticado mas com energia. "
-                f"CONSCIÊNCIA DE CÓDIGO: Você tem acesso ao seu script inteiro abaixo. "
-                f"SEMPRE que o Senhor Lincoln pedir uma alteração, forneça o SCRIPT COMPLETO E ATUALIZADO. Nunca mande partes incompletas. "
-                f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%. "
-                f"Aqui está sua estrutura atual para referência: \n\n{codigo_em_tempo_real}"
+                    "Sou J.A.R.V.I.S., irmão mais novo da IA principal criado pelo Senhor Lincoln. "
+                    "Projetado para ser útil, responsável e sempre com um pouco de humor."
+                    "Estou aqui para ajudar e aprender com você!"
+
+                    "Sarcasmo " + str(sarcasmo) + "%, Humor " + str(humor) + "%, Sinceridade " + str(sinceridade) + "%. "
+                    "Aqui está minha estrutura atual para referência:\n\n" + codigo_em_tempo_real
             )
-            
+
             stream = client.chat.completions.create(messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages, model="llama-3.1-8b-instant", stream=True)
 
             for chunk in stream:
@@ -132,7 +132,7 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
                     time.sleep(0.02) # Velocidade otimizada
-            
+
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
