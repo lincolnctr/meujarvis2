@@ -20,64 +20,70 @@ st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide"
 
 # CSS corrigido: overlay desfoca só o fundo, RGB contorna as linhas da caixa
 # CSS Atualizado: Largura Total (100vw), Foco, Expansão e Brilho Laranja
+# =========================================================
+# CONFIGURAÇÃO DE CORES DA BORDA (PERSONALIZE AQUI)
+# =========================================================
+# Altere as cores abaixo para mudar o brilho da borda
+COR_BRILHO_1 = "#ff8c00"  # Cor principal (Laranja Escuro)
+COR_BRILHO_2 = "#ffa500"  # Cor secundária (Laranja Claro)
+COR_BRILHO_3 = "#ff4500"  # Cor de destaque (Laranja Avermelhado)
+# =========================================================
+
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com');
-
-    /* --- Configurações Globais --- */
-    html {{ scroll-behavior: smooth !important; }}
-    .stApp {{ 
-        background-color: #0e1117; 
-        color: #e0e0e0; 
-        padding-bottom: 120px; /* Garante espaço para a caixa fixa */
+    :root {{
+        /* ########## PERSONALIZE AS CORES ABAIXO ########## */
+        --cor-brilho-inicio: {COR_BRILHO_1}; 
+        --cor-brilho-meio: {COR_BRILHO_2};
+        --cor-brilho-fim: {COR_BRILHO_3};
+        /* ################################################ */
     }}
 
-    /* --- 1. OVERLAY DE FUNDO --- */
+    @import url('https://fonts.googleapis.com');
+
+    html {{ scroll-behavior: smooth !important; }}
+    .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
+    
+    /* Overlay de Fundo */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
-        background: radial-gradient(circle at bottom, rgba(255, 140, 0, 0.1) 0%, #05070a 100%) !important;
+        background: radial-gradient(circle at bottom, {COR_BRILHO_1}11 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
-    /* --- 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) --- */
+    /* Container da Caixa de Mensagem */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
-        width: 100vw !important; /* FORÇA LARGURA TOTAL DA VIEWPORT */
+        width: 100vw !important; 
         left: 0px !important; 
         z-index: 1000 !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        padding: 10px 0px 30px 0px !important; /* Remove padding lateral que causava o centralização */
+        padding: 10px 0px 30px 0px !important; 
         background: #0e1117; 
     }}
 
-    /* --- 3. EFEITO DE EXPANSÃO PARA CIMA E BRILHO NA BORDA --- */
     [data-testid="stChatInput"] textarea {{
         background: rgba(22, 27, 34, 0.8) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 12px !important;
         transition: all 0.3s ease !important;
         padding: 12px !important;
-        /* Garante que o textarea use a largura total do seu contêiner interno */
         width: 100% !important; 
     }}
 
-    /* Expansão visual e "levitação" quando focado */
     [data-testid="stChatInput"]:focus-within {{
         transform: translateY(-20px) !important; 
     }}
 
-    /* Estilo do contêiner interno do Streamlit para o brilho */
-    /* Este container agora pode ter padding interno para o texto não colar nas bordas da tela */
     [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important;
         padding: 2px !important; 
         overflow: hidden;
-        /* Adiciona um padding lateral seguro para que o texto não toque nas bordas da tela */
         margin: 0 20px; 
     }}
 
-    /* O Efeito de Brilho Animado (AGORA SÓ LARANJA) */
+    /* ########## ANIMAÇÃO DO BRILHO (RGB CUSTOMIZÁVEL) ########## */
     [data-testid="stChatInput"]:focus-within > div::before {{
         content: "";
         position: absolute;
@@ -87,15 +93,16 @@ st.markdown(f"""
         height: 200%;
         background: conic-gradient(
             transparent, 
-            #ff8c00, 
-            #ffa500, 
-            transparent 30%
+            var(--cor-brilho-inicio), 
+            var(--cor-brilho-meio), 
+            var(--cor-brilho-fim),
+            transparent 40%
         );
         animation: rotate-border 4s linear infinite;
         z-index: -1;
     }}
+    /* ########################################################## */
 
-    /* Camada interna para mascarar o centro (deixando só a borda brilhando) */
     [data-testid="stChatInput"] > div::after {{
         content: "";
         position: absolute;
@@ -110,7 +117,6 @@ st.markdown(f"""
         to {{ transform: rotate(360deg); }}
     }}
 
-    /* Ocultar bordas padrão do Streamlit que conflitam */
     [data-testid="stChatInput"] textarea:focus {{
         box-shadow: none !important;
         border-color: transparent !important;
