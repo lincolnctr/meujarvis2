@@ -129,14 +129,15 @@ REGRAS IMUTÁVEIS:
 - Nunca inicie respostas com saudações como "na área" ou similares.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
+        # Usa mais contexto (últimas 10 mensagens)
         history_for_prompt = st.session_state.messages[-10:]
 
         messages = [{"role": "system", "content": sys_prompt}] + history_for_prompt
 
-        # Modelo atualizado (substitua aqui se quiser testar outro)
-        model = "llama-3.3-70b-versatile"  # Sucessor do 3.1-70b
+        # Modelo atualizado
+        model = "llama-3.3-70b-versatile"  # Para texto normal
         if image_content:
-            model = "llama-3.2-11b-vision-preview"  # Para visão, se disponível
+            model = "meta-llama/llama-4-scout-17b-16e-instruct"  # Multimodal/vision oficial 2026
 
         try:
             stream = client.chat.completions.create(
@@ -156,19 +157,16 @@ REGRAS IMUTÁVEIS:
             st.session_state.messages.append({"role": "assistant", "content": full_res})
         except Exception as e:
             response_placeholder.markdown(
-                f'<div class="jarvis-final-box" style="color:red; border: 1px solid red;">'
+                f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">'
                 f'Erro na API Groq: {str(e)}<br><br>'
-                f'Detalhes: Verifique o modelo usado ("{model}"), a chave API e os logs do Streamlit Cloud.'
+                f'Detalhes: Verifique o modelo usado ("{model}"), se a chave API está correta em st.secrets, '
+                f'e os logs do Streamlit Cloud para mais informações. '
+                f'Se for modelo descontinuado, use "meta-llama/llama-4-scout-17b-16e-instruct" para visão.'
                 f'</div>', 
                 unsafe_allow_html=True
             )
-            response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
-            st.session_state.messages.append({"role": "assistant", "content": full_res})
-        except Exception as e:
-            response_placeholder.markdown(f"<div class='jarvis-final-box' style='color:red;'>Erro na API Groq: {str(e)}</div>", unsafe_allow_html=True)
 
-        # Salva chat
+        # Salva chat (mesmo com erro, para não perder histórico)
         titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
         salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
-
     st.session_state.processed_prompt = None
