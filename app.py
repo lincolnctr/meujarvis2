@@ -18,7 +18,7 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS corrigido: menu mais baixo, esfera recriada com CSS puro
+# CSS atualizado: esfera recriada com CSS puro, menu mais baixo
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
@@ -27,10 +27,10 @@ st.markdown(f"""
     html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
 
-    /* Menu fixo - mais baixo para não cortar título */
+    /* Menu fixo - canto superior direito, mais baixo para não cortar */
     .top-menu {{
         position: fixed;
-        top: 80px;  /* Ajustado mais pra baixo */
+        top: 80px;
         right: 10px;
         background: rgba(14, 17, 23, 0.75);
         backdrop-filter: blur(6px);
@@ -44,7 +44,7 @@ st.markdown(f"""
         max-width: 350px;
     }}
 
-    /* Esfera recriada com CSS (sem imagem, base na sua referência) */
+    /* Esfera recriada com CSS puro (sem imagem) */
     .thought-sphere {{
         width: 60px;
         height: 60px;
@@ -58,21 +58,28 @@ st.markdown(f"""
     .thought-sphere::before {{
         content: '';
         position: absolute;
-        inset: 0;
-        background: repeating-conic-gradient(from 0deg, transparent 0deg, transparent 30deg, rgba(255,140,0,0.4) 30deg, rgba(255,140,0,0.4) 60deg);
-        opacity: 0.6;
-        animation: lines-rotate 15s linear infinite;
+        inset: -20%;
+        background: repeating-conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 30deg,
+            rgba(255,140,0,0.5) 30deg,
+            rgba(255,140,0,0.5) 60deg
+        );
+        opacity: 0.7;
+        animation: lines-rotate 20s linear infinite;
     }}
     .thought-sphere::after {{
         content: '';
         position: absolute;
         inset: 10px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
         opacity: 0.8;
+        animation: inner-glow 4s ease-in-out infinite;
     }}
     .thought-sphere.thinking {{
-        animation: rotate-planet 25s linear infinite, pulse-glow 2.5s ease-in-out infinite;
+        animation: rotate-planet 30s linear infinite, pulse-glow 2.5s ease-in-out infinite;
         filter: brightness(1.3);
     }}
     .thought-sphere.paused {{
@@ -81,6 +88,7 @@ st.markdown(f"""
         animation: none;
     }}
     .thought-sphere.paused::before {{ animation: none; }}
+    .thought-sphere.paused::after {{ animation: none; }}
     @keyframes rotate-planet {{
         from {{ transform: rotate(0deg); }}
         to {{ transform: rotate(360deg); }}
@@ -92,6 +100,10 @@ st.markdown(f"""
     @keyframes pulse-glow {{
         0%, 100% {{ box-shadow: 0 0 20px {COR_GLOW_IA}aa; }}
         50% {{ box-shadow: 0 0 40px {COR_GLOW_IA}ff; }}
+    }}
+    @keyframes inner-glow {{
+        0%, 100% {{ opacity: 0.8; }}
+        50% {{ opacity: 1; }}
     }}
 
     /* Lista de pensamentos */
@@ -113,7 +125,7 @@ st.markdown(f"""
     /* Espaço para conteúdo não ser cortado */
     .main-content {{ margin-top: 140px !important; padding-top: 20px; }}
 
-    /* Resto do CSS original */
+    /* Título original */
     .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; text-align: center; }}
     .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
     .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
@@ -160,7 +172,7 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
-# Sidebar (mantida exatamente como você tinha)
+# Sidebar
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -273,7 +285,6 @@ REGRAS IMUTÁVEIS:
 - Quando questionado seus sentimentos, independente de você não ter, responda com positividade ou negatividade se estiver positivo ou negativo no momento.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
-            # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
                 try:
                     with open(__file__, "r", encoding="utf-8") as f:
