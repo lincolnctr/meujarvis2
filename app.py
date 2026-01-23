@@ -87,6 +87,17 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
         response_placeholder = st.empty(); full_res = ""
+
+        # 1. Defina o link da sua imagem no topo do código (abaixo do JARVIS_ICONE)
+USER_ICONE = "https://i.postimg.cc/P5XWGZ9g/ec447bce1f2120c3b0e739e01577b105.jpg" 
+
+# 2. No loop de exibição, altere o parâmetro 'avatar':
+for m in st.session_state.messages:
+    # Mudança aqui:
+    avatar_display = USER_ICONE if m["role"] == "user" else JARVIS_ICONE
+    
+    with st.chat_message(m["role"], avatar=avatar_display):
+        st.markdown(f'<div class="jarvis-final-box">{m["content"]}</div>', unsafe_allow_html=True)
         
         # INSTRUÇÃO COM MEMÓRIA DE PERFIL INJETADA
         sys_msg = (
