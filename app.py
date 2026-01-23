@@ -5,7 +5,7 @@ import json
 import uuid
 
 # =========================================================
-# PAINEL DE CONFIGURAÇÃO MANUAL (ESTÁVEL)
+# PAINEL DE CONFIGURAÇÃO MANUAL (SISTEMA BLINDADO)
 # =========================================================
 TAMANHO_FONTE = 15          
 COR_JARVIS = "#00d4ff"      
@@ -65,6 +65,7 @@ st.markdown(f"""
 
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
+# Ícone atualizado conforme solicitado
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
 
 if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
@@ -82,12 +83,11 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# CORE OS: CONTROLES DE HARDWARE E HUMOR
+# CORE OS: BARRA LATERAL
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     
-    # Restauração dos Sliders do Core
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 45)
     humor = st.slider("Humor %", 0, 100, 50)
     sinceridade = st.slider("Sinceridade %", 0, 100, 90)
@@ -123,11 +123,13 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
         response_placeholder = st.empty(); full_res = ""
         
+        # LOGICA DE PERSONALIDADE REFINADA: DIRETO, ÚTIL, SEM ATUAÇÃO
         sys_msg = (
-            f"Você é o J.A.R.V.I.S., assistente leal. "
-            f"PERSONALIDADE: Polido, útil e equilibrado. Não atue (sem asteriscos/gestos). "
-            f"Responda com densidade adequada, nem curto demais, nem longo demais."
-            f"Seja direto e não se empolgue, resumindo seus textos e deixa do o que útil"
+            f"Você é o J.A.R.V.I.S., assistente leal do Senhor Lincoln. "
+            f"PERSONALIDADE: Britânico, polido e eficiente. "
+            f"REGRA DE OURO: Não atue (sem asteriscos ou descrições de gestos). "
+            f"ESTILO: Seja direto, vá direto ao ponto e não se empolgue. Resuma seus textos focando no que é útil. "
+            f"Equilibre ser divertido e responsável. "
             f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
         )
 
@@ -138,12 +140,14 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_res += chunk.choices[0].delta.content
+                # Mantendo o brilho laranja durante a geração
                 response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
         
+        # Título automático de 2 palavras
         if len(st.session_state.messages) <= 2:
             try:
                 t_res = client.chat.completions.create(
-                    messages=[{"role": "system", "content": "Título de 2 palavras."}, {"role": "user", "content": prompt}],
+                    messages=[{"role": "system", "content": "Resuma o assunto em exatas 2 palavras."}, {"role": "user", "content": prompt}],
                     model="llama-3.1-8b-instant"
                 )
                 st.session_state.titulo_atual = t_res.choices[0].message.content.strip().replace('"', '').upper()
