@@ -18,7 +18,7 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS atualizado com os 3 efeitos na caixa de mensagem
+# CSS atualizado: efeitos de foco na caixa de diálogo (expansão, overlay, brilho RGB contornando)
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
@@ -26,81 +26,87 @@ st.markdown(f"""
     html {{ scroll-behavior: auto !important; }}
     html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
-    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; }}
+    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; text-align: center; }}
     .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
     .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* Caixa de mensagem aprimorada com os 3 efeitos */
-    .stChatInput {{
-        transition: all 0.4s ease !important;
+    /* Caixa de diálogo aprimorada (efeitos de foco estilo Google) */
+    [data-testid="stChatInput"] {{
         position: relative !important;
+        transition: all 0.35s ease !important;
         z-index: 10 !important;
     }}
-    .stChatInput > div {{
-        border-radius: 12px !important;
+    [data-testid="stChatInput"] > div {{
+        border-radius: 16px !important;
         border: 2px solid rgba(255, 140, 0, 0.3) !important;
-        background: rgba(22, 27, 34, 0.9) !important;
+        background: rgba(22, 27, 34, 0.95) !important;
         transition: all 0.35s ease !important;
         min-height: 52px !important;
         padding: 12px 16px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
     }}
 
     /* 1. Expansão dinâmica ao focar */
-    .stChatInput:focus-within > div {{
-        min-height: 90px !important;
+    [data-testid="stChatInput"]:focus-within > div {{
+        min-height: 100px !important;
         padding: 16px 20px !important;
-        transform: translateY(-2px) !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 8px 30px rgba(255, 140, 0, 0.3) !important;
     }}
 
     /* 2. Overlay escurecido no fundo ao focar */
-    .stChatInput:focus-within::before {{
+    [data-testid="stChatInput"]:focus-within::before {{
         content: '';
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(3px);
         z-index: 5;
         pointer-events: none;
         transition: opacity 0.4s ease;
         opacity: 1;
     }}
-    .stChatInput:not(:focus-within)::before {{
-        opacity: 0;
-    }}
-
-    /* 3. Borda animada (Border Beam) com gradiente percorrendo */
-    .stChatInput > div {{
-        position: relative !important;
-        overflow: hidden !important;
-    }}
-    .stChatInput > div::after {{
-        content: '';
-        position: absolute;
-        inset: -2px;
-        background: conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            #ff8c00 30deg,
-            #00d4ff 120deg,
-            #ff8c00 240deg,
-            transparent 360deg
-        );
-        animation: border-beam 4s linear infinite;
-        pointer-events: none;
+    [data-testid="stChatInput"]:not(:focus-within)::before {{
         opacity: 0;
         transition: opacity 0.4s ease;
     }}
-    .stChatInput:focus-within > div::after {{
-        opacity: 0.8;
+
+    /* 3. Brilho RGB contornando a caixa (border beam animado) */
+    [data-testid="stChatInput"] > div {{
+        position: relative !important;
+        overflow: hidden !important;
     }}
-    @keyframes border-beam {{
+    [data-testid="stChatInput"] > div::after {{
+        content: '';
+        position: absolute;
+        inset: -3px;
+        background: conic-gradient(
+            from 0deg at 50% 50%,
+            transparent 0deg,
+            #ff8c00 60deg,
+            #00d4ff 120deg,
+            #ff8c00 180deg,
+            #00d4ff 240deg,
+            #ff8c00 300deg,
+            transparent 360deg
+        );
+        animation: border-rgb 5s linear infinite;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        border-radius: 18px !important;
+    }}
+    [data-testid="stChatInput"]:focus-within > div::after {{
+        opacity: 0.9;
+    }}
+    @keyframes border-rgb {{
         0% {{ transform: rotate(0deg); }}
         100% {{ transform: rotate(360deg); }}
     }}
 
-    /* Indicador de "pensando" */
+    /* Indicador de "pensando" (mantido) */
     .thinking-indicator {{
         background: rgba(255, 140, 0, 0.15);
         border: 1px solid #ff8c00;
@@ -191,7 +197,7 @@ with st.sidebar:
 
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
-# Indicador de "pensando"
+# Indicador de "pensando" (mantido)
 st.markdown(f"""
     <div class="thinking-indicator" id="thinking-indicator">
         Pensando...
@@ -215,7 +221,7 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Chat input
+# Chat input (com efeitos de foco)
 prompt_obj = st.chat_input(
     "Comando...",
     accept_file=True,
@@ -280,7 +286,6 @@ REGRAS IMUTÁVEIS:
 - Quando questionado seus sentimentos, independente de você não ter, responda com positividade ou negatividade se estiver positivo ou negativo no momento.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
-            # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
                 try:
                     with open(__file__, "r", encoding="utf-8") as f:
