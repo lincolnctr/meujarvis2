@@ -124,7 +124,7 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         response_placeholder = st.empty(); full_res = ""
         
         sys_msg = (
-            f"Você é o J.A.R.V.I.S., assistente britânico leal. "
+            f"Você é o J.A.R.V.I.S., assistente leal. "
             f"PERSONALIDADE: Polido, útil e equilibrado. Não atue (sem asteriscos/gestos). "
             f"Responda com densidade adequada, nem curto demais, nem longo demais. "
             f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
