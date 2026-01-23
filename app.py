@@ -19,7 +19,7 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
 # CSS corrigido: overlay desfoca só o fundo, RGB contorna as linhas da caixa
-# CSS Atualizado: Largura Total, Foco, Expansão e Brilho "Edge Beam"
+# CSS Atualizado: Largura Total (100vw), Foco, Expansão e Brilho Laranja
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com');
@@ -29,27 +29,25 @@ st.markdown(f"""
     .stApp {{ 
         background-color: #0e1117; 
         color: #e0e0e0; 
-        /* Usamos padding para garantir espaço para a caixa fixa no fundo */
-        padding-bottom: 120px; 
+        padding-bottom: 120px; /* Garante espaço para a caixa fixa */
     }}
     
     /* --- 1. OVERLAY DE FUNDO --- */
-    /* Escurece o app principal quando a caixa está focada */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
-        background: radial-gradient(circle at bottom, rgba(0, 212, 255, 0.1) 0%, #05070a 100%) !important;
+        background: radial-gradient(circle at bottom, rgba(255, 140, 0, 0.1) 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
     /* --- 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) --- */
     [data-testid="stChatInput"] {{
         position: fixed !important;
-        bottom: 0px !important; /* Fixa no rodapé absoluto */
-        width: 100vw !important; /* Ocupa 100% da largura da tela/viewport */
-        left: 0px !important; /* Alinha perfeitamente à esquerda */
+        bottom: 0px !important; 
+        width: 100vw !important; /* FORÇA LARGURA TOTAL DA VIEWPORT */
+        left: 0px !important; 
         z-index: 1000 !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        padding: 10px 20px 30px 20px !important; /* Padding maior para o fundo e laterais */
-        background: #0e1117; /* Fundo opaco para cobrir o conteúdo por baixo */
+        padding: 10px 0px 30px 0px !important; /* Remove padding lateral que causava o centralização */
+        background: #0e1117; 
     }}
 
     /* --- 3. EFEITO DE EXPANSÃO PARA CIMA E BRILHO NA BORDA --- */
@@ -59,25 +57,27 @@ st.markdown(f"""
         border-radius: 12px !important;
         transition: all 0.3s ease !important;
         padding: 12px !important;
+        /* Garante que o textarea use a largura total do seu contêiner interno */
+        width: 100% !important; 
     }}
 
     /* Expansão visual e "levitação" quando focado */
     [data-testid="stChatInput"]:focus-within {{
-        /* Move a caixa inteira 20px para cima */
         transform: translateY(-20px) !important; 
     }}
 
     /* Estilo do contêiner interno do Streamlit para o brilho */
+    /* Este container agora pode ter padding interno para o texto não colar nas bordas da tela */
     [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important;
         padding: 2px !important; 
         overflow: hidden;
-        max-width: 1000px; /* Limita a largura em telas muito grandes, se preferir */
-        margin: auto; /* Centraliza no espaço total de 100vw */
+        /* Adiciona um padding lateral seguro para que o texto não toque nas bordas da tela */
+        margin: 0 20px; 
     }}
 
-    /* O Efeito de Brilho Animado */
+    /* O Efeito de Brilho Animado (AGORA SÓ LARANJA) */
     [data-testid="stChatInput"]:focus-within > div::before {{
         content: "";
         position: absolute;
@@ -87,8 +87,8 @@ st.markdown(f"""
         height: 200%;
         background: conic-gradient(
             transparent, 
-            {COR_JARVIS}, 
-            {COR_GLOW_IA}, 
+            #ff8c00, 
+            #ffa500, 
             transparent 30%
         );
         animation: rotate-border 4s linear infinite;
@@ -117,6 +117,7 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
 
 
 
