@@ -9,7 +9,7 @@ import uuid
 # =========================================================
 TAMANHO_FONTE = 14          
 COR_JARVIS = "#00d4ff"      
-COR_GLOW_IA = "#ff8c00"      # O laranja neon original
+COR_GLOW_IA = "#ff8c00"      
 DISTANCIA_LINHAS = 1.5      
 # =========================================================
 
@@ -19,6 +19,9 @@ st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
     
+    /* Bloqueio de Scroll Automático Forçado */
+    html {{ scroll-behavior: auto !important; }}
+
     html, body, [class*="css"], .stMarkdown, p, div {{ 
         font-family: 'Inter', sans-serif !important; 
         font-size: {TAMANHO_FONTE}px !important; 
@@ -29,21 +32,31 @@ st.markdown(f"""
     
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
-        font-size: 28px !important; 
+        font-size: 26px !important; 
         font-weight: 700; color: {COR_JARVIS}; 
         letter-spacing: 3px; text-shadow: 0 0 10px {COR_JARVIS}aa; 
         margin-bottom: 15px; 
     }}
     
-    /* --- EFEITO DE BRILHO E BALÕES --- */
+    /* --- BALÕES DE CHAT --- */
     
-    /* Balão da IA com Brilho Laranja (Esquerda) */
-    .jarvis-active-border {{ 
+    /* Balão Padrão da IA (Sem Brilho) */
+    .jarvis-final-box {{ 
+        border: 1px solid rgba(255, 255, 255, 0.1); 
+        border-radius: 0 15px 15px 15px; 
+        padding: 12px 18px; 
+        background: rgba(255, 255, 255, 0.05); 
+        margin-top: 5px;
+        text-align: left !important;
+    }}
+
+    /* Balão da IA EM GERAÇÃO (Com Brilho Laranja) */
+    .jarvis-thinking-glow {{ 
         border: 2px solid {COR_GLOW_IA}; 
         border-radius: 0 15px 15px 15px; 
         padding: 12px 18px; 
         background: rgba(22, 27, 34, 0.9); 
-        box-shadow: 0 0 15px {COR_GLOW_IA}44, inset 0 0 10px {COR_GLOW_IA}22;
+        box-shadow: 0 0 20px {COR_GLOW_IA}66;
         margin-top: 5px;
         text-align: left !important;
     }}
@@ -53,15 +66,13 @@ st.markdown(f"""
         margin-left: auto !important;
         width: fit-content !important;
         max-width: 80% !important;
-        background: rgba(0, 212, 255, 0.1) !important;
-        border: 1px solid rgba(0, 212, 255, 0.3);
+        background: rgba(0, 212, 255, 0.08) !important;
+        border: 1px solid rgba(0, 212, 255, 0.2);
         border-radius: 15px 15px 0 15px !important;
         padding: 10px !important;
     }}
 
-    /* Remove fundos padrão do Streamlit para não bugar o visual */
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-    
     </style>
 """, unsafe_allow_html=True)
 
@@ -93,10 +104,6 @@ with st.sidebar:
     sinceridade = st.slider("Sinceridade %", 0, 100, 85)
     
     st.markdown("---")
-    if st.checkbox("LOG DE MODIFICAÇÕES", value=True):
-        st.info("Efeito de Brilho IA: Restaurado")
-        st.success("Layout: Espelhado e Estável")
-    
     if st.button("+ NOVO PROTOCOLO", use_container_width=True):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"; st.session_state.messages = []; st.session_state.titulo_atual = "NOVA SESSÃO"; st.rerun()
 
@@ -121,7 +128,8 @@ st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=T
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=(None if m["role"]=="user" else JARVIS_ICONE)):
         if m["role"] == "assistant":
-            st.markdown(f'<div class="jarvis-active-border">{m["content"]}</div>', unsafe_allow_html=True)
+            # Mensagens antigas ficam com a borda discreta
+            st.markdown(f'<div class="jarvis-final-box">{m["content"]}</div>', unsafe_allow_html=True)
         else:
             st.markdown(m["content"])
 
@@ -152,9 +160,10 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_res += chunk.choices[0].delta.content
-                # Brilho enquanto gera
-                response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
+                # ENQUANTO GERA: Usa a classe com BRILHO LARANJA
+                response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
         
-        response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}</div>', unsafe_allow_html=True)
+        # AO FINALIZAR: Troca para a classe DISCRETA (sem brilho laranja)
+        response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
         st.session_state.messages.append({"role": "assistant", "content": full_res})
         salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
