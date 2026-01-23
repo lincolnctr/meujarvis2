@@ -117,12 +117,8 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             codigo_em_tempo_real = obter_codigo_completo()
 
             sys_msg = (
-                    "Sou J.A.R.V.I.S., irmão mais novo da IA principal criado pelo Senhor Lincoln. "
-                    "Projetado para ser útil, responsável e sempre com um pouco de humor."
-                    "Estou aqui para ajudar e aprender com você!"
-
-                    "Sarcasmo " + str(sarcasmo) + "%, Humor " + str(humor) + "%, Sinceridade " + str(sinceridade) + "%. "
-                    "Aqui está minha estrutura atual para referência:\n\n" + codigo_em_tempo_real
+                "Estou aqui para ajudar e aprender com você. Minha prioridade é fornecer respostas úteis e precisas. "
+                "Aqui está minha estrutura atual para referência:\n\n" + codigo_em_tempo_real
             )
 
             stream = client.chat.completions.create(messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages, model="llama-3.1-8b-instant", stream=True)
