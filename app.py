@@ -5,24 +5,24 @@ import json
 import uuid
 import time
 
-# ---------------------------------------------------------
-# 1. INTERFACE HUD (COM CALIBRAGEM DINÂMICA)
-# ---------------------------------------------------------
+# =========================================================
+# PAINEL DE CONFIGURAÇÃO MANUAL (PERSONALIZE AQUI)
+# =========================================================
+TAMANHO_FONTE = 14          # Altere o número para mudar o tamanho da letra
+COR_JARVIS = "#00d4ff"      # Cor azul neon do cabeçalho
+DISTANCIA_LINHAS = 1.5      # Espaçamento entre linhas
+# =========================================================
+
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# Inicializa o tamanho da fonte no estado da sessão se não existir
-if "font_size" not in st.session_state:
-    st.session_state.font_size = 14
-
-# CSS com variável de tamanho de fonte
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
     
     html, body, [class*="css"], .stMarkdown, p, div {{ 
         font-family: 'Inter', sans-serif !important; 
-        font-size: {st.session_state.font_size}px !important; 
-        line-height: 1.5 !important;
+        font-size: {TAMANHO_FONTE}px !important; 
+        line-height: {DISTANCIA_LINHAS} !important;
     }}
     
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
@@ -31,9 +31,9 @@ st.markdown(f"""
         font-family: 'Orbitron', sans-serif !important; 
         font-size: 28px !important; 
         font-weight: 700; 
-        color: #00d4ff; 
+        color: {COR_JARVIS}; 
         letter-spacing: 3px; 
-        text-shadow: 0 0 10px #00d4ffaa; 
+        text-shadow: 0 0 10px {COR_JARVIS}aa; 
         margin-bottom: 15px; 
     }}
     
@@ -75,10 +75,10 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# 3. CORE OS: BARRA LATERAL (CONTROLES VISUAIS)
+# 3. CORE OS: BARRA LATERAL (RESTAURADA)
 # ---------------------------------------------------------
 with st.sidebar:
-    st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     
     st.subheader("Personalidade")
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 45)
@@ -86,9 +86,11 @@ with st.sidebar:
     sinceridade = st.slider("Sinceridade %", 0, 100, 85)
     
     st.markdown("---")
-    st.subheader("Visual")
-    # NOVO: Controle de tamanho de fonte
-    st.session_state.font_size = st.slider("Tamanho da Fonte (px)", 12, 24, st.session_state.font_size)
+    # LOG DE MODIFICAÇÕES VOLTOU
+    if st.checkbox("LOG DE MODIFICAÇÕES", value=True):
+        st.info(f"Fonte: {TAMANHO_FONTE}px | Estilo: Gemini Clean")
+        st.success("Scroll automático: Desativado")
+        st.write("Variáveis de interface movidas para o topo do código.")
     
     st.markdown("---")
     if st.button("+ NOVO PROTOCOLO"):
@@ -105,7 +107,7 @@ with st.sidebar:
             if col2.button("🗑️", key=f"d_{cid}"): os.remove(os.path.join(CHATS_DIR, f)); st.rerun()
 
 # ---------------------------------------------------------
-# 4. PROCESSAMENTO E PERSONALIDADE
+# 4. PROCESSAMENTO
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
@@ -128,8 +130,7 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             contexto = f"\n\nLÓGICA ATUAL:\n{obter_essencia_do_codigo()}"
 
         sys_msg = (
-            f"Você é o J.A.R.V.I.S., assistente britânico sofisticado. Polido e eficiente. "
-            f"Responda ao Senhor Lincoln sem textos excessivamente longos. "
+            f"Você é o J.A.R.V.I.S., assistente britânico. Polido e eficiente. "
             f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
             f"{contexto}"
         )
