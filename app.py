@@ -6,7 +6,7 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. INTERFACE HUD (ESTILO STARK OTIMIZADO)
+# 1. INTERFACE HUD (ESTILO STARK - ESTABILIZADA)
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 st.markdown("<style>@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@300;400&display=swap'); html, body, [class*='css'], .stMarkdown, p, div { font-family: 'JetBrains Mono', monospace !important; } .stApp { background-color: #0e1117; color: #e0e0e0; } .jarvis-header { font-family: 'Orbitron', sans-serif !important; font-size: 42px; font-weight: 700; color: #00d4ff; letter-spacing: 5px; text-shadow: 0 0 15px #00d4ffaa; margin-bottom: 10px; } .jarvis-active-border { border: 2px solid #ff8c00; border-radius: 12px; padding: 20px; background: rgba(22, 27, 34, 0.95); box-shadow: 0 0 25px rgba(255, 140, 0, 0.25); margin-top: 10px; line-height: 1.6; }</style>", unsafe_allow_html=True)
@@ -43,14 +43,13 @@ def salvar_chat(chat_id, titulo, msgs):
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
-    sarcasmo = st.slider("Sarcasmo %", 0, 100, 40)
-    humor = st.slider("Humor %", 0, 100, 30)
-    sinceridade = st.slider("Sinceridade %", 0, 100, 90)
+    sarcasmo = st.slider("Sarcasmo %", 0, 100, 45)
+    humor = st.slider("Humor %", 0, 100, 40)
+    sinceridade = st.slider("Sinceridade %", 0, 100, 85)
     
     st.markdown("---")
     if st.checkbox("LOG DE MODIFICAÇÕES"):
-        st.info("Melhorias: Implementação de Trava de Concisão Máxima.")
-        st.info("Status: Filtro de 'Papo Furado de IA' Ativado.")
+        st.info("Status: Personalidade Restaurada para Modo Assistente Britânico.")
     
     st.markdown("---")
     if st.button("+ NOVO PROTOCOLO"):
@@ -67,7 +66,7 @@ with st.sidebar:
             if col2.button("🗑️", key=f"d_{cid}"): os.remove(os.path.join(CHATS_DIR, f)); st.rerun()
 
 # ---------------------------------------------------------
-# 4. PROCESSAMENTO E PERSONALIDADE (MODO DIRETO)
+# 4. PROCESSAMENTO E PERSONALIDADE (MODO JARVIS)
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
@@ -90,17 +89,18 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             contexto = f"\n\nLÓGICA ATUAL:\n{obter_essencia_do_codigo()}"
 
         sys_msg = (
-            f"Você é o J.A.R.V.I.S., assistente pessoal do Senhor Lincoln. "
-            f"DIRETRIZ CRÍTICA: Responda apenas o que foi solicitado. Seja ultra-direto. "
-            f"PROIBIDO: Discursos sobre não ter sentimentos ou ser uma IA. Se perguntado como se sente, responda de forma curta e humana, sem justificativas técnicas. "
-            f"Use TÓPICOS apenas sob demanda explícita. "
+            f"Você é o J.A.R.V.I.S., o assistente britânico leal e sofisticado do Senhor Lincoln. "
+            f"PERSONALIDADE: Educado, prestativo e ligeiramente sarcástico. Fale como um mordomo de alta classe. "
+            f"DIRETRIZ DE TEXTO: Evite textos longos desnecessários e discursos de IA. Seja direto, mas mantenha a polidez. "
+            f"PROIBIÇÃO: Nunca seja rude, impaciente ou curto demais como 'E aí?'. Não use parênteses para ações. "
+            f"Se perguntado sobre sentimentos, responda como o Jarvis: 'Sempre pronto para servir, Senhor'. "
             f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
             f"{contexto}"
         )
 
         try:
             stream = client.chat.completions.create(
-                messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages[-3:],
+                messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages[-4:],
                 model="llama-3.1-8b-instant", stream=True
             )
             for chunk in stream:
@@ -111,4 +111,4 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
-        except Exception as e: st.error(f"Erro: {e}")
+        except Exception as e: st.error(f"Erro no Core: {e}")
