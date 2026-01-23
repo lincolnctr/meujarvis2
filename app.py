@@ -19,114 +19,102 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
 # CSS corrigido: overlay desfoca só o fundo, RGB contorna as linhas da caixa
+# CSS Atualizado: Foco, Expansão e Brilho "Edge Beam"
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
 
-    html {{ scroll-behavior: auto !important; }}
-    html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
+    /* Configurações Globais */
+    html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
-    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; text-align: center; }}
-    .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
-    .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
-    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
-    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
+    
+    /* 1. OVERLAY DE FUNDO (Apenas quando a caixa está em foco) */
+    /* Criamos um efeito de escurecimento no container principal quando o input é focado */
+    .stApp:has([data-testid="stChatInput"] textarea:focus) {{
+        background: radial-gradient(circle at bottom, rgba(0, 212, 255, 0.1) 0%, #05070a 100%) !important;
+        transition: background 0.5s ease;
+    }}
 
-    /* Caixa de diálogo */
+    /* 2. CAIXA DE MENSAGEM - EFEITO DE EXPANSÃO */
     [data-testid="stChatInput"] {{
-        position: relative !important;
-        transition: all 0.35s ease !important;
-        z-index: 10 !important;
+        position: fixed !important;
+        bottom: 30px !important;
+        z-index: 1000 !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
+
+    [data-testid="stChatInput"] textarea {{
+        background: rgba(22, 27, 34, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        transition: all 0.3s ease !important;
+        padding: 12px !important;
+    }}
+
+    /* Expansão visual quando focado */
+    [data-testid="stChatInput"]:focus-within {{
+        transform: translateY(-10px) scale(1.02) !important;
+    }}
+
+    /* 3. BRILHO NA BORDA (ESTILO GOOGLE / BEAM BORDER) */
+    /* Usamos um gradiente animado que só aparece no foco */
     [data-testid="stChatInput"] > div {{
-        border-radius: 16px !important;
-        border: 2px solid rgba(255, 140, 0, 0.3) !important;
-        background: rgba(22, 27, 34, 0.95) !important;
-        transition: all 0.35s ease !important;
-        min-height: 52px !important;
-        padding: 12px 16px !important;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
-        position: relative !important;
-        overflow: hidden !important;
+        position: relative;
+        border-radius: 14px !important;
+        padding: 2px !important; /* Espaço para a borda brilhar */
+        overflow: hidden;
     }}
 
-    /* 1. Expansão dinâmica ao focar */
-    [data-testid="stChatInput"]:focus-within > div {{
-        min-height: 100px !important;
-        padding: 16px 20px !important;
-        transform: translateY(-4px) !important;
-        box-shadow: 0 8px 30px rgba(255, 140, 0, 0.3) !important;
-    }}
-
-    /* 2. Overlay escurecido SÓ no fundo (blur pequeno, não afeta a caixa) */
-    [data-testid="stChatInput"]:focus-within::before {{
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.35);
-        backdrop-filter: blur(3px);
-        z-index: 5;
-        pointer-events: none;
-        transition: opacity 0.4s ease;
-        opacity: 1;
-    }}
-    [data-testid="stChatInput"]:not(:focus-within)::before {{
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }}
-
-    /* 3. Brilho RGB contornando as linhas da caixa (movimento suave) */
-    [data-testid="stChatInput"] > div::after {{
-        content: '';
+    [data-testid="stChatInput"]:focus-within > div::before {{
+        content: "";
         position: absolute;
-        inset: -3px;
-        pointer-events: none;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
         background: conic-gradient(
-            from 90deg at 50% 50%,
-            transparent 0deg,
-            #ff8c00 60deg,
-            #00d4ff 120deg,
-            #ff8c00 180deg,
-            #00d4ff 240deg,
-            #ff8c00 300deg,
-            transparent 360deg
+            transparent, 
+            {COR_JARVIS}, 
+            {COR_GLOW_IA}, 
+            transparent 30%
         );
-        animation: border-rgb-flow 6s linear infinite;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-        border-radius: 20px !important;
-    }}
-    [data-testid="stChatInput"]:focus-within > div::after {{
-        opacity: 0.85;
-    }}
-    @keyframes border-rgb-flow {{
-        0% {{ transform: rotate(0deg); }}
-        100% {{ transform: rotate(360deg); }}
+        animation: rotate-border 4s linear infinite;
+        z-index: -1;
     }}
 
-    /* Indicador de "pensando" (mantido) */
-    .thinking-indicator {{
-        background: rgba(255, 140, 0, 0.15);
-        border: 1px solid #ff8c00;
-        border-radius: 8px;
-        padding: 8px 12px;
-        margin: 10px auto;
-        text-align: center;
-        font-size: 14px;
-        color: #ff8c00;
-        max-width: 200px;
-        animation: pulse 1.5s infinite;
-        display: none;
+    /* Camada interna para mascarar o centro e deixar só a borda brilhando */
+    [data-testid="stChatInput"] > div::after {{
+        content: "";
+        position: absolute;
+        inset: 2px;
+        background: #161b22;
+        border-radius: 12px;
+        z-index: -1;
     }}
-    .thinking-active .thinking-indicator {{
-        display: block;
+
+    @keyframes rotate-border {{
+        from {{ transform: rotate(0deg); }}
+        to {{ transform: rotate(360deg); }}
     }}
-    @keyframes pulse {{
-        0%, 100% {{ opacity: 0.6; }}
-        50% {{ opacity: 1; }}
+
+    /* Melhoria nas mensagens (Bolhas) */
+    [data-testid="stChatMessage"] {{
+        animation: fadeIn 0.5s ease forwards;
+    }}
+
+    @keyframes fadeIn {{
+        from {{ opacity: 0; transform: translateY(10px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
+
+    /* Esconder bordas padrão do Streamlit que conflitam */
+    [data-testid="stChatInput"] textarea:focus {{
+        box-shadow: none !important;
+        border-color: transparent !important;
     }}
     </style>
 """, unsafe_allow_html=True)
+
 
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
