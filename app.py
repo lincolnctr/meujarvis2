@@ -4,6 +4,7 @@ import os
 import json
 import uuid
 import base64
+import random
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
@@ -39,6 +40,7 @@ if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{u
 if "messages" not in st.session_state: st.session_state.messages = []
 if "processed_prompt" not in st.session_state: st.session_state.processed_prompt = None
 if "log_modificacoes" not in st.session_state: st.session_state.log_modificacoes = []
+if "humor_nivel" not in st.session_state: st.session_state.humor_nivel = 20
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -60,7 +62,8 @@ def salvar_chat(chat_id, titulo, msgs):
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 30, key="sarcasmo_slider")
-    humor = st.slider("Humor %", 0, 100, 20, key="humor_slider")
+    humor = st.slider("Humor %", 0, 100, st.session_state.humor_nivel, key="humor_slider")
+    st.session_state.humor_nivel = humor
 
     if st.button("+ NOVO PROTOCOLO (RESET)"):
         st.session_state.messages = []
@@ -144,7 +147,7 @@ if prompt_obj and prompt_obj != st.session_state.processed_prompt:
 REGRAS IMUTÁVEIS:
 - Use sempre a MEMÓRIA DE PERFIL: {memoria_perfil}
 - Estilo: técnico, direto, preciso, profissional. Britânico em tom quando apropriado.
-- Sarcasmo: {sarcasmo}%. Humor: {humor}%. Aplique com moderação e apenas se fizer sentido no contexto.
+- Sarcasmo: {sarcasmo}%. Humor: {st.session_state.humor_nivel}%. Aplique com moderação e apenas se fizer sentido no contexto.
 - Seja útil, objetivo e breve na resposta principal. Forneça detalhes adicionais apenas se solicitado.
 - Analise imagens com precisão e objetividade quando enviadas (descreva conteúdo, identifique elementos relevantes, forneça observações úteis).
 - Nunca use gírias, linguagem coloquial excessiva, palavrões ou tom adolescente.
@@ -258,5 +261,15 @@ REGRAS IMUTÁVEIS:
             titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
             salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
 
+            if st.session_state.humor_nivel > 30 and random.random() < 0.2:
+                humor_respostas = [
+                    "Ahah, espero que isso tenha ajudado!",
+                    "Se não funcionar, tente reiniciar... ou não, depende do caso :P",
+                    "Espero que isso não tenha sido muito confuso, senão é só perguntar novamente, ok?",
+                    "Era isso! O que mais posso ajudar?",
+                    "Se tiver mais alguma dúvida, é só perguntar, que eu estou aqui para ajudar... ou tentar, pelo menos :D"
+                ]
+                response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
+
     st.session_state.processed_prompt = None
-            
+                    
