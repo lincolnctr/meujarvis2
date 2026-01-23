@@ -124,9 +124,9 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-Ajustei o código para que ele crie a barra deslizante.
+##Ajustei o código para que ele crie a barra deslizante.
 
-**Confirme se a barra de 2px de altura desliza suavemente sobre a linha superior da caixa de mensagem** e se a largura total está correta agora.
+##Confirme se a barra de 2px de altura desliza suavemente sobre a linha superior da caixa de mensagem** e se a largura total está correta agora.
 
 
 
