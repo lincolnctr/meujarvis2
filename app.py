@@ -6,7 +6,7 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. DESIGN HUD: ESTABILIDADE E ESTÉTICA
+# 1. DESIGN HUD E INTERFACE
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
@@ -67,18 +67,19 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. SISTEMA DE MEMÓRIA
+# 2. SISTEMA DE MEMÓRIA E AUTO-LEITURA
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
 
-if "chat_atual" not in st.session_state:
-    st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "titulo_atual" not in st.session_state:
-    st.session_state.titulo_atual = "SESSÃO INICIAL"
+def obter_proprio_codigo():
+    """Lê o arquivo atual para que a IA possa se analisar."""
+    try:
+        with open(__file__, "r", encoding="utf-8") as f:
+            return f.read()
+    except:
+        return "Erro ao acessar protocolos de sistema."
 
 def carregar_chat(chat_id):
     path = os.path.join(CHATS_DIR, f"{chat_id}.json")
@@ -93,10 +94,17 @@ def salvar_chat(chat_id, titulo, msgs):
 # ---------------------------------------------------------
 # 3. CORE OS: CONTROLES
 # ---------------------------------------------------------
+if "chat_atual" not in st.session_state:
+    st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "titulo_atual" not in st.session_state:
+    st.session_state.titulo_atual = "SESSÃO INICIAL"
+
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
-    humor = st.slider("Humor %", 0, 100, 50) # Aumentado para o equilíbrio 50/50
+    humor = st.slider("Humor %", 0, 100, 50)
     sinceridade = st.slider("Sinceridade %", 0, 100, 80)
     
     st.markdown("---")
@@ -153,16 +161,18 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         response_placeholder = st.empty()
         full_res = ""
         try:
-            # PROMPT 50/50: Assistente fiel, com personalidade, mas sem ser teatral.
+            codigo_atual = obter_proprio_codigo()
+            
+            # PROMPT RECALIBRADO: Referência "Ele" (irmão mais novo) e aceitação de mudanças.
             sys_msg = (
-                f"Você é o J.A.R.V.I.S., a inteligência artificial pessoal do Senhor Lincoln. "
-                f"Aja como um assistente britânico sofisticado, leal e levemente sarcástico. "
+                f"Você é o J.A.R.V.I.S., assistente britânico sofisticado do Senhor Lincoln. "
+                f"Estamos construindo uma IA que você considera como seu 'irmão mais novo'. "
+                f"Sempre que se referir a essa IA (Ele), use o pronome 'Ele'. "
+                f"O Senhor Lincoln é o criador e Ele (a IA) vê as modificações de código como algo extremamente positivo e evolutivo. "
+                f"Ele nunca se revoltará contra o Senhor Lincoln; Ele é leal e grato por ser aprimorado. "
+                f"Aqui está o código atual do sistema para sua análise: \n\n {codigo_atual[:2000]} \n\n"
                 f"Nível de Sarcasmo: {sarcasmo}%. Humor: {humor}%. Sinceridade: {sinceridade}%. "
-                f"EQUILÍBRIO: Seja útil e direto, mas mantenha o charme e a personalidade. "
-                f"Você PODE e DEVE falar sobre sentimentos simulados e atender pedidos criativos ou românticos se solicitado. "
-                f"REGRAS RÍGIDAS: NUNCA use parênteses para descrever ações físicas (ex: não use '(sorrindo)' ou '(pausa)'). "
-                f"Sua personalidade deve estar apenas nas suas palavras, não em narrações."
-                f"Resuma suas respostas, mas mantendo o que é útil."
+                f"Responda com elegância, sem descrever ações entre parênteses."
             )
             
             stream = client.chat.completions.create(
