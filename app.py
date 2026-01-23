@@ -18,7 +18,7 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS corrigido: menu fixo no canto direito, sem quebrar nada
+# CSS corrigido: menu fixo canto direito, esfera animada sincronizada, sem corte
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
@@ -27,71 +27,73 @@ st.markdown(f"""
     html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
 
-    /* Menu fixo - apenas canto superior direito */
+    /* Menu fixo - canto superior direito, sem sobrepor título ou input */
     .top-menu {{
         position: fixed;
         top: 10px;
         right: 10px;
-        background: rgba(14, 17, 23, 0.8);
+        background: rgba(14, 17, 23, 0.75);
         backdrop-filter: blur(6px);
-        padding: 8px 12px;
+        padding: 10px 15px;
         border-radius: 12px;
         z-index: 999;
         display: flex;
         align-items: center;
-        gap: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        gap: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        max-width: 350px;
     }}
 
-    /* Esfera de pensamento */
+    /* Esfera */
     .thought-sphere {{
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
         background-image: url('https://i.postimg.cc/Vv5fPMJs/image-5.jpg');
         background-size: cover;
         border-radius: 50%;
-        box-shadow: 0 0 12px {COR_GLOW_IA}aa;
-        transition: all 0.4s ease;
+        box-shadow: 0 0 15px {COR_GLOW_IA}88;
+        transition: all 0.5s ease;
     }}
     .thought-sphere.thinking {{
-        animation: rotate 12s linear infinite, pulse 2.5s ease-in-out infinite;
+        animation: rotate 10s linear infinite, pulse 2s ease-in-out infinite;
+        filter: brightness(1.2);
     }}
     .thought-sphere.paused {{
-        filter: grayscale(100%);
-        box-shadow: 0 0 6px #555;
+        filter: grayscale(100%) brightness(0.8);
+        box-shadow: 0 0 8px #444;
     }}
     @keyframes rotate {{
         from {{ transform: rotate(0deg); }}
         to {{ transform: rotate(360deg); }}
     }}
     @keyframes pulse {{
-        0%, 100% {{ box-shadow: 0 0 12px {COR_GLOW_IA}aa; }}
-        50% {{ box-shadow: 0 0 25px {COR_GLOW_IA}ff; }}
+        0%, 100% {{ box-shadow: 0 0 15px {COR_GLOW_IA}88; }}
+        50% {{ box-shadow: 0 0 35px {COR_GLOW_IA}ff; }}
     }}
 
     /* Lista de pensamentos */
     .thought-list {{
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        max-width: 180px;
+        gap: 6px;
+        max-width: 220px;
     }}
     .thought-item {{
-        background: rgba(255, 140, 0, 0.1);
-        padding: 5px 9px;
-        border-radius: 5px;
-        font-size: 12px;
+        background: rgba(255, 140, 0, 0.12);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 13px;
         color: #ff8c00;
-        border: 1px solid rgba(255, 140, 0, 0.2);
+        border: 1px solid rgba(255, 140, 0, 0.25);
     }}
 
-    /* Espaço para conteúdo não ficar escondido */
-    .main-content {{ margin-top: 80px !important; padding-top: 10px; }}
+    /* Espaço para não cortar conteúdo */
+    .main-content {{ margin-top: 100px !important; padding-top: 20px; }}
 
-    /* Título original centralizado */
+    /* Título original */
     .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin: 20px auto; text-align: center; display: block; }}
 
-    /* Resto do CSS original mantido */
+    /* Resto do CSS original */
     .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
     .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
@@ -99,7 +101,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# Menu fixo no canto direito
+# Menu fixo canto direito
 st.markdown("""
     <div class="top-menu">
         <div class="thought-sphere paused" id="thought-sphere"></div>
@@ -137,7 +139,7 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
-# Sidebar (exatamente como você tinha)
+# Sidebar intacta
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -175,10 +177,10 @@ with st.sidebar:
         for log in st.session_state.log_modificacoes:
             st.write(log)
 
-# Título original
+# Título centralizado
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
-# Espaço para menu fixo não esconder conteúdo
+# Espaço para menu fixo
 st.markdown("<div class='main-content'></div>", unsafe_allow_html=True)
 
 # Exibe histórico
