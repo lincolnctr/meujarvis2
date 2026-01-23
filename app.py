@@ -191,7 +191,14 @@ REGRAS IMUTÁVEIS:
 
                     updated_code = response.choices[0].message.content.strip()
 
-                    full_res = f"""Aqui está a versão atualizada do meu código fonte (app.py):
-
-```python
-{updated_code}
+                    full_res = (
+                        "Aqui está a versão atualizada do meu código fonte (app.py):\n\n"
+                        "```python\n" +
+                        updated_code +
+                        "\n```\n\n"
+                        "**Instruções para aplicar:**\n"
+                        "1. Copie TODO o conteúdo dentro do bloco ```python ... ```\n"
+                        "2. Substitua o arquivo app.py inteiro no seu repositório GitHub.\n"
+                        "3. Faça commit e push.\n"
+                        "4. O Streamlit Cloud redeploya automaticamente."
+                    )
