@@ -65,7 +65,7 @@ st.markdown(f"""
 
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
-JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
+JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
 
 if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
 if "messages" not in st.session_state: st.session_state.messages = []
