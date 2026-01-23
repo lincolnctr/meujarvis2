@@ -37,6 +37,7 @@ if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 
 if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
 if "messages" not in st.session_state: st.session_state.messages = []
+if "processed_prompt" not in st.session_state: st.session_state.processed_prompt = None
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -57,8 +58,8 @@ def salvar_chat(chat_id, titulo, msgs):
 # Sidebar
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
-    sarcasmo = st.slider("Sarcasmo %", 0, 100, 30)
-    humor = st.slider("Humor %", 0, 100, 20)
+    sarcasmo = st.slider("Sarcasmo %", 0, 100, 30, key="sarcasmo_slider")
+    humor = st.slider("Humor %", 0, 100, 20, key="humor_slider")
     
     if st.button("+ NOVO PROTOCOLO (RESET)"):
         st.session_state.messages = []
@@ -97,7 +98,11 @@ if uploaded_file:
     image_base64 = base64.b64encode(image_bytes).decode("utf-8")
     image_content = [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}]
 
-if prompt := st.chat_input("Comando..."):
+# Chat input deve ficar no final para evitar reruns prematuros
+prompt = st.chat_input("Comando...")
+if prompt and prompt != st.session_state.processed_prompt:
+    st.session_state.processed_prompt = prompt
+
     full_user_content = prompt
     if image_content:
         full_user_content = [{"type": "text", "text": prompt}] + image_content
@@ -144,7 +149,7 @@ REGRAS IMUTÁVEIS:
         )
 
         for chunk in stream:
-            if chunk.choices[0].delta.content:
+            if chunk.choices[0].delta.content is not None:
                 full_res += chunk.choices[0].delta.content
                 response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
@@ -154,3 +159,5 @@ REGRAS IMUTÁVEIS:
         # Salva chat
         titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
         salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+
+    st.session_state.processed_prompt = None
