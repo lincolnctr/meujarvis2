@@ -18,131 +18,41 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS atualizado: esfera recriada com CSS puro, menu mais baixo
+# CSS mantido (sem menu/esfera, só indicador simples de "pensando")
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
-
     html {{ scroll-behavior: auto !important; }}
     html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
-
-    /* Menu fixo - canto superior direito, mais baixo para não cortar */
-    .top-menu {{
-        position: fixed;
-        top: 80px;
-        right: 10px;
-        background: rgba(14, 17, 23, 0.75);
-        backdrop-filter: blur(6px);
-        padding: 12px 16px;
-        border-radius: 12px;
-        z-index: 999;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-        max-width: 350px;
-    }}
-
-    /* Esfera recriada com CSS puro (sem imagem) */
-    .thought-sphere {{
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, #ff8c00 0%, #ff4500 40%, #1a1f2e 100%);
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 0 20px {COR_GLOW_IA}aa;
-        transition: all 0.5s ease;
-    }}
-    .thought-sphere::before {{
-        content: '';
-        position: absolute;
-        inset: -20%;
-        background: repeating-conic-gradient(
-            from 0deg,
-            transparent 0deg,
-            transparent 30deg,
-            rgba(255,140,0,0.5) 30deg,
-            rgba(255,140,0,0.5) 60deg
-        );
-        opacity: 0.7;
-        animation: lines-rotate 20s linear infinite;
-    }}
-    .thought-sphere::after {{
-        content: '';
-        position: absolute;
-        inset: 10px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-        opacity: 0.8;
-        animation: inner-glow 4s ease-in-out infinite;
-    }}
-    .thought-sphere.thinking {{
-        animation: rotate-planet 30s linear infinite, pulse-glow 2.5s ease-in-out infinite;
-        filter: brightness(1.3);
-    }}
-    .thought-sphere.paused {{
-        filter: grayscale(100%) brightness(0.7);
-        box-shadow: 0 0 10px #555;
-        animation: none;
-    }}
-    .thought-sphere.paused::before {{ animation: none; }}
-    .thought-sphere.paused::after {{ animation: none; }}
-    @keyframes rotate-planet {{
-        from {{ transform: rotate(0deg); }}
-        to {{ transform: rotate(360deg); }}
-    }}
-    @keyframes lines-rotate {{
-        from {{ transform: rotate(0deg); }}
-        to {{ transform: rotate(-360deg); }}
-    }}
-    @keyframes pulse-glow {{
-        0%, 100% {{ box-shadow: 0 0 20px {COR_GLOW_IA}aa; }}
-        50% {{ box-shadow: 0 0 40px {COR_GLOW_IA}ff; }}
-    }}
-    @keyframes inner-glow {{
-        0%, 100% {{ opacity: 0.8; }}
-        50% {{ opacity: 1; }}
-    }}
-
-    /* Lista de pensamentos */
-    .thought-list {{
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        max-width: 220px;
-    }}
-    .thought-item {{
-        background: rgba(255, 140, 0, 0.12);
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 13px;
-        color: #ff8c00;
-        border: 1px solid rgba(255, 140, 0, 0.25);
-    }}
-
-    /* Espaço para conteúdo não ser cortado */
-    .main-content {{ margin-top: 140px !important; padding-top: 20px; }}
-
-    /* Título original */
-    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; text-align: center; }}
+    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; }}
     .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
     .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-    </style>
-""", unsafe_allow_html=True)
 
-# Menu fixo (mais baixo)
-st.markdown("""
-    <div class="top-menu">
-        <div class="thought-sphere paused" id="thought-sphere"></div>
-        <div class="thought-list">
-            <div class="thought-item">Pensamento 1: Estilo detectado</div>
-            <div class="thought-item">Pensamento 2: Objetivo acumulado</div>
-        </div>
-    </div>
+    /* Indicador simples de "pensando" */
+    .thinking-indicator {{
+        background: rgba(255, 140, 0, 0.15);
+        border: 1px solid #ff8c00;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 10px auto;
+        text-align: center;
+        font-size: 14px;
+        color: #ff8c00;
+        max-width: 200px;
+        animation: pulse 1.5s infinite;
+        display: none;  /* Escondido por default */
+    }}
+    .thinking-active .thinking-indicator {{
+        display: block;
+    }}
+    @keyframes pulse {{
+        0%, 100% {{ opacity: 0.6; }}
+        50% {{ opacity: 1; }}
+    }}
+    </style>
 """, unsafe_allow_html=True)
 
 CHATS_DIR = "chats_db"
@@ -212,6 +122,22 @@ with st.sidebar:
 
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
+# Indicador de "pensando" (pequena interface para testar o sistema)
+st.markdown(f"""
+    <div class="thinking-indicator" id="thinking-indicator">
+        Pensando...
+    </div>
+
+    <script>
+        const indicator = document.getElementById('thinking-indicator');
+        if ({'true' if st.session_state.is_thinking else 'false'}) {{
+            indicator.style.display = 'block';
+        }} else {{
+            indicator.style.display = 'none';
+        }}
+    </script>
+""", unsafe_allow_html=True)
+
 # Exibe histórico
 for m in st.session_state.messages:
     avatar = USER_ICONE if m["role"] == "user" else JARVIS_ICONE
@@ -231,7 +157,7 @@ prompt_obj = st.chat_input(
 
 if prompt_obj and prompt_obj != st.session_state.processed_prompt:
     st.session_state.processed_prompt = prompt_obj
-    st.session_state.is_thinking = True
+    st.session_state.is_thinking = True  # Ativa "pensando"
 
     user_text = prompt_obj.text.strip() if hasattr(prompt_obj, 'text') and prompt_obj.text else ""
     uploaded_files = prompt_obj.files if hasattr(prompt_obj, 'files') else []
@@ -285,6 +211,7 @@ REGRAS IMUTÁVEIS:
 - Quando questionado seus sentimentos, independente de você não ter, responda com positividade ou negatividade se estiver positivo ou negativo no momento.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
+            # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
                 try:
                     with open(__file__, "r", encoding="utf-8") as f:
