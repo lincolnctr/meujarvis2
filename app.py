@@ -17,7 +17,7 @@ USER_ICONE = "https://i.postimg.cc/P5XWGZ9g/ec447bce1f2120c3b0e739e01577b105.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS mantido (interface futurista)
+# CSS mantido
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
@@ -89,7 +89,7 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Upload de imagem (opcional, pode remover se não quiser usar agora)
+# Upload de imagem (opcional)
 uploaded_file = st.file_uploader("Envie uma imagem para análise (opcional)", type=["jpg", "jpeg", "png"])
 
 image_content = None
@@ -98,7 +98,7 @@ if uploaded_file:
     image_base64 = base64.b64encode(image_bytes).decode("utf-8")
     image_content = [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}]
 
-# Chat input deve ficar no final para evitar reruns prematuros
+# Chat input no final
 prompt = st.chat_input("Comando...")
 if prompt and prompt != st.session_state.processed_prompt:
     st.session_state.processed_prompt = prompt
@@ -117,7 +117,6 @@ if prompt and prompt != st.session_state.processed_prompt:
         response_placeholder = st.empty()
         full_res = ""
 
-        # System prompt atualizado - limpo, direto, sem informalidade excessiva
         sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal e eficiente do Senhor Lincoln.
 REGRAS IMUTÁVEIS:
 - Use sempre a MEMÓRIA DE PERFIL: {memoria_perfil}
@@ -130,31 +129,33 @@ REGRAS IMUTÁVEIS:
 - Nunca inicie respostas com saudações como "na área" ou similares.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
-        # Usa mais contexto (últimas 10 mensagens)
         history_for_prompt = st.session_state.messages[-10:]
 
         messages = [{"role": "system", "content": sys_prompt}] + history_for_prompt
 
-        # Modelo sugerido
-        model = "llama-3.1-70b-versatile"
+        # Modelo atualizado (substitua aqui se quiser testar outro)
+        model = "llama-3.3-70b-versatile"  # Sucessor do 3.1-70b
         if image_content:
-            model = "llama-3.2-11b-vision-preview"  # ou o modelo vision disponível na Groq
+            model = "llama-3.2-11b-vision-preview"  # Para visão, se disponível
 
-        stream = client.chat.completions.create(
-            messages=messages,
-            model=model,
-            temperature=0.6,
-            max_tokens=1024,
-            stream=True
-        )
+        try:
+            stream = client.chat.completions.create(
+                messages=messages,
+                model=model,
+                temperature=0.6,
+                max_tokens=8192,  # Ajustado para limite comum
+                stream=True
+            )
 
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                full_res += chunk.choices[0].delta.content
-                response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    full_res += chunk.choices[0].delta.content
+                    response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-        response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
-        st.session_state.messages.append({"role": "assistant", "content": full_res})
+            response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+            st.session_state.messages.append({"role": "assistant", "content": full_res})
+        except Exception as e:
+            response_placeholder.markdown(f"<div class='jarvis-final-box' style='color:red;'>Erro na API Groq: {str(e)}</div>", unsafe_allow_html=True)
 
         # Salva chat
         titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
