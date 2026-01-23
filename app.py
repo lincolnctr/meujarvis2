@@ -140,30 +140,44 @@ REGRAS IMUTÁVEIS:
             model = "meta-llama/llama-4-scout-17b-16e-instruct"  # Multimodal/vision oficial 2026
 
         try:
+            # Timeout explícito + parâmetros otimizados para visão
             stream = client.chat.completions.create(
                 messages=messages,
                 model=model,
                 temperature=0.6,
-                max_tokens=8192,
-                stream=True
+                max_tokens=4096,          # Reduzido para evitar stall em visão
+                stream=True,
+                timeout=120               # Timeout de 2 minutos para visão (Groq default é baixo)
             )
 
             for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
-                    full_res += chunk.choices[0].delta.content
+                delta = chunk.choices[0].delta
+                if delta.content is not None:
+                    full_res += delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
+            # Finaliza
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
+
+        except groq.BadRequestError as e:
+            response_placeholder.markdown(
+                f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">'
+                f'Erro Bad Request na Groq (provável modelo ou formato inválido): {str(e)}'
+                f'</div>', unsafe_allow_html=True
+            )
+        except groq.APITimeoutError as e:
+            response_placeholder.markdown(
+                f'<div class="jarvis-final-box" style="color:orange; border: 1px solid orange; padding: 15px;">'
+                f'Tempo esgotado na API Groq (visão pode ser lenta). Tente imagem menor ou sem foto.'
+                f'</div>', unsafe_allow_html=True
+            )
         except Exception as e:
             response_placeholder.markdown(
                 f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">'
-                f'Erro na API Groq: {str(e)}<br><br>'
-                f'Detalhes: Verifique o modelo usado ("{model}"), se a chave API está correta em st.secrets, '
-                f'e os logs do Streamlit Cloud para mais informações. '
-                f'Se for modelo descontinuado, use "meta-llama/llama-4-scout-17b-16e-instruct" para visão.'
-                f'</div>', 
-                unsafe_allow_html=True
+                f'Erro geral na API Groq durante visão: {str(e)}<br>'
+                f'Tente: imagem menor (<5MB), prompt simples, ou desative upload temporariamente.'
+                f'</div>', unsafe_allow_html=True
             )
 
         # Salva chat (mesmo com erro, para não perder histórico)
