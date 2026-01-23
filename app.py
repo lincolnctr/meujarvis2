@@ -21,32 +21,32 @@ st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide"
 # CSS corrigido: overlay desfoca só o fundo, RGB contorna as linhas da caixa
 # CSS Atualizado: Largura Total (100vw), Foco, Expansão e Brilho Laranja
 # =========================================================
-# CONFIGURAÇÃO DE CORES DA BORDA (PERSONALIZE AQUI)
+# CONFIGURAÇÃO DE CORES DA BARRA DESLIZANTE (PERSONALIZE AQUI)
 # =========================================================
-# Altere as cores abaixo para mudar o brilho da borda
-COR_BRILHO_1 = "#ff8c00"  # Cor principal (Laranja Escuro)
-COR_BRILHO_2 = "#ffa500"  # Cor secundária (Laranja Claro)
-COR_BRILHO_3 = "#ff4500"  # Cor de destaque (Laranja Avermelhado)
+# Altere as cores abaixo para mudar a barra de brilho
+COR_BARRA_1 = "#ff8c00"  # Laranja Principal
+COR_BARRA_2 = "#ffa500"  # Laranja Claro (Meio)
+COR_BARRA_3 = "#ff4500"  # Laranja de Destaque
 # =========================================================
 
 st.markdown(f"""
     <style>
-    /* Definimos as variáveis CSS globalmente para fácil personalização */
     :root {{
-        --cor-brilho-inicio: {COR_BRILHO_1}; 
-        --cor-brilho-meio: {COR_BRILHO_2};
-        --cor-brilho-fim: {COR_BRILHO_3};
-        --bg-input: #161b22; /* Fundo escuro do input */
+        /* ########## VARIAVEIS CSS PARA PERSONALIZAR ########## */
+        --cor-barra-inicio: {COR_BARRA_1}; 
+        --cor-barra-meio: {COR_BARRA_2};
+        --cor-barra-fim: {COR_BARRA_3};
+        /* ##################################################### */
     }}
 
-    @import url('https://fonts.googleapis.com');
+    @import url('https://fonts.googleapis.com[700]&display=swap');
 
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
     
     /* 1. OVERLAY DE FUNDO */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
-        background: radial-gradient(circle at bottom, var(--cor-brilho-inicio)11 0%, #05070a 100%) !important;
+        background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
@@ -75,53 +75,47 @@ st.markdown(f"""
         transform: translateY(-20px) !important; 
     }}
 
-    /* Container interno com padding lateral para o texto */
     [data-testid="stChatInput"] > div {{
         position: relative;
-        /* Define um border-radius para o contorno */
-        border-radius: 16px !important; 
-        padding: 2px !important; 
-        overflow: hidden;
+        border-radius: 14px !important; 
+        overflow: hidden; /* Mantém a barra de brilho confinada à borda */
         margin: 0 20px; 
+        border: 1px solid transparent; /* Remove a borda anterior para evitar conflito */
     }}
 
-    /* ########## ANIMAÇÃO DO BRILHO (CONTORNO RGB CORRIGIDO) ########## */
-    [data-testid="stChatInput"]:focus-within > div::before {{
+    /* ########## ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO (CORRIGIDO) ########## */
+    [data-testid="stChatInput"] > div::before {{
         content: "";
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        /* Usa as variáveis de cor e garante a rotação */
-        background: conic-gradient(
+        top: 0; /* Posiciona no topo exato */
+        left: 0;
+        width: 100%;
+        height: 2px; /* Espessura da barra */
+        /* Gradiente linear que desliza */
+        background: linear-gradient(
+            to right, 
             transparent, 
-            var(--cor-brilho-inicio), 
-            var(--cor-brilho-meio), 
-            var(--cor-brilho-fim),
-            transparent 40%
+            var(--cor-barra-inicio), 
+            var(--cor-barra-meio), 
+            var(--cor-barra-fim),
+            transparent
         );
-        animation: rotate-border 4s linear infinite;
-        z-index: -1;
+        /* Inicia fora da tela (-100%) e desliza 200% para a direita */
+        transform: translateX(-100%); 
+        animation: slide-right 2s linear infinite;
+        opacity: 0; /* Invisível por padrão */
+        transition: opacity 0.3s ease;
     }}
 
-    /* A camada preta interna que MASCA o gradiente, deixando só o contorno visível */
-    [data-testid="stChatInput"] > div::after {{
-        content: "";
-        position: absolute;
-        /* inset define o quão grossa a borda será (ex: 2px significa 2px de borda) */
-        inset: 2px; 
-        background: var(--bg-input);
-        /* Usa o mesmo border-radius do contêiner externo menos 2px de cada lado */
-        border-radius: 14px; 
-        z-index: -1;
+    [data-testid="stChatInput"]:focus-within > div::before {{
+        opacity: 1; /* Aparece ao focar */
+    }}
+
+    @keyframes slide-right {{
+        0% {{ transform: translateX(-100%); }}
+        100% {{ transform: translateX(100%); }}
     }}
     /* ###################################################################### */
-
-    @keyframes rotate-border {{
-        from {{ transform: rotate(0deg); }}
-        to {{ transform: rotate(360deg); }}
-    }}
 
     [data-testid="stChatInput"] textarea:focus {{
         box-shadow: none !important;
@@ -129,6 +123,11 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
+Ajustei o código para que ele crie a barra deslizante.
+
+**Confirme se a barra de 2px de altura desliza suavemente sobre a linha superior da caixa de mensagem** e se a largura total está correta agora.
+
 
 
 
