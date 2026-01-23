@@ -77,7 +77,7 @@ with st.sidebar:
         for f in sorted(os.listdir(CHATS_DIR), reverse=True):
             cid = f.replace(".json", "")
             dados = carregar_chat(cid)
-            col_txt, col_del = st.columns([0.8, 0.2])
+            col_txt, col_del, col_rename = st.columns([0.6, 0.2, 0.2])
             if col_txt.button(f"• {dados.get('titulo', 'Sessão')[:20]}", key=cid):
                 st.session_state.chat_atual = cid
                 st.session_state.messages = dados['messages']
@@ -85,6 +85,12 @@ with st.sidebar:
             if col_del.button("🗑️", key=f"d_{cid}"):
                 os.remove(os.path.join(CHATS_DIR, f))
                 st.rerun()
+            with col_rename:
+                if st.button("📝", key=f"r_{cid}"):
+                    novo_titulo = st.text_input("Novo título:", value=dados.get('titulo', 'Sessão'), key=f"n_{cid}")
+                    if st.button("Salvar", key=f"s_{cid}"):
+                        salvar_chat(cid, novo_titulo, dados['messages'])
+                        st.rerun()
 
     st.subheader("LOG DE MODIFICAÇÕES")
     if st.session_state.log_modificacoes:
@@ -276,3 +282,4 @@ REGRAS IMUTÁVEIS:
                 response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
 
     st.session_state.processed_prompt = None
+                    
