@@ -18,7 +18,7 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS corrigido: menu fixo canto direito, esfera animada sincronizada, sem corte
+# CSS corrigido: menu fixo mais baixo, esfera recriada com CSS (sem imagem)
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
@@ -27,10 +27,10 @@ st.markdown(f"""
     html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
 
-    /* Menu fixo - canto superior direito, sem sobrepor título ou input */
+    /* Menu fixo - canto superior direito, mais baixo para evitar corte */
     .top-menu {{
         position: fixed;
-        top: 10px;
+        top: 50px;  /* Movido mais pra baixo */
         right: 10px;
         background: rgba(14, 17, 23, 0.75);
         backdrop-filter: blur(6px);
@@ -44,34 +44,45 @@ st.markdown(f"""
         max-width: 350px;
     }}
 
-    /* Esfera */
+    /* Esfera recriada com CSS (baseada na imagem: orb dourado com linhas giratórias) */
     .thought-sphere {{
         width: 60px;
         height: 60px;
-        background-image: url('https://i.postimg.cc/Vv5fPMJs/image-5.jpg');
-        background-size: cover;
         border-radius: 50%;
-        box-shadow: 0 0 15px {COR_GLOW_IA}88;
+        background: radial-gradient(circle, #ff8c00 0%, #ff4500 50%, #0e1117 100%);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 15px {COR_GLOW_IA}aa;
         transition: all 0.5s ease;
     }}
+    .thought-sphere::before {{
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: repeating-radial-gradient(circle, transparent 0%, rgba(255,140,0,0.3) 2%, transparent 4%);
+        opacity: 0.8;
+    }}
     .thought-sphere.thinking {{
-        animation: rotate 10s linear infinite, pulse 2s ease-in-out infinite;
+        animation: rotate-planet 20s linear infinite, pulse 2s ease-in-out infinite;
         filter: brightness(1.2);
     }}
     .thought-sphere.paused {{
         filter: grayscale(100%) brightness(0.8);
-        box-shadow: 0 0 8px #444;
+        box-shadow: 0 0 8px #555;
     }}
-    @keyframes rotate {{
+    @keyframes rotate-planet {{
         from {{ transform: rotate(0deg); }}
         to {{ transform: rotate(360deg); }}
     }}
     @keyframes pulse {{
-        0%, 100% {{ box-shadow: 0 0 15px {COR_GLOW_IA}88; }}
-        50% {{ box-shadow: 0 0 35px {COR_GLOW_IA}ff; }}
+        0%, 100% {{ box-shadow: 0 0 15px {COR_GLOW_IA}aa; }}
+        50% {{ box-shadow: 0 0 30px {COR_GLOW_IA}ff; }}
     }}
 
-    /* Lista de pensamentos */
+    /* Lista de pensamentos (mais pra baixo, ajustada para não cortar) */
     .thought-list {{
         display: flex;
         flex-direction: column;
@@ -87,29 +98,16 @@ st.markdown(f"""
         border: 1px solid rgba(255, 140, 0, 0.25);
     }}
 
-    /* Espaço para não cortar conteúdo */
-    .main-content {{ margin-top: 100px !important; padding-top: 20px; }}
+    /* Espaço para conteúdo */
+    .main-content {{ margin-top: 120px !important; padding-top: 20px; }}  /* Aumentado para evitar corte */
 
-    /* Título original */
-    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin: 20px auto; text-align: center; display: block; }}
-
-    /* Resto do CSS original */
+    /* Resto do CSS original mantido */
+    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; }}
     .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
     .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
     </style>
-""", unsafe_allow_html=True)
-
-# Menu fixo canto direito
-st.markdown("""
-    <div class="top-menu">
-        <div class="thought-sphere paused" id="thought-sphere"></div>
-        <div class="thought-list">
-            <div class="thought-item">Pensamento 1: Estilo detectado</div>
-            <div class="thought-item">Pensamento 2: Objetivo acumulado</div>
-        </div>
-    </div>
 """, unsafe_allow_html=True)
 
 CHATS_DIR = "chats_db"
@@ -121,7 +119,6 @@ if "processed_prompt" not in st.session_state: st.session_state.processed_prompt
 if "log_modificacoes" not in st.session_state: st.session_state.log_modificacoes = []
 if "humor_nivel" not in st.session_state: st.session_state.humor_nivel = 59
 if "sinceridade_nivel" not in st.session_state: st.session_state.sinceridade_nivel = 75
-if "is_thinking" not in st.session_state: st.session_state.is_thinking = False
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -139,7 +136,7 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
-# Sidebar intacta
+# Sidebar
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -177,11 +174,7 @@ with st.sidebar:
         for log in st.session_state.log_modificacoes:
             st.write(log)
 
-# Título centralizado
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
-
-# Espaço para menu fixo
-st.markdown("<div class='main-content'></div>", unsafe_allow_html=True)
 
 # Exibe histórico
 for m in st.session_state.messages:
@@ -191,18 +184,17 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Chat input
+# Chat input integrado com upload de imagem (ícone de anexo ao lado do campo)
 prompt_obj = st.chat_input(
     "Comando...",
     accept_file=True,
-    file_type=["jpg", "jpeg", "png"],
-    max_upload_size=10,
+    file_type=["jpg", "jpeg", "png"],  # Só imagens
+    max_upload_size=10,                # Limite em MB
     key="jarvis_chat_input"
 )
 
 if prompt_obj and prompt_obj != st.session_state.processed_prompt:
     st.session_state.processed_prompt = prompt_obj
-    st.session_state.is_thinking = True
 
     user_text = prompt_obj.text.strip() if hasattr(prompt_obj, 'text') and prompt_obj.text else ""
     uploaded_files = prompt_obj.files if hasattr(prompt_obj, 'files') else []
@@ -210,18 +202,21 @@ if prompt_obj and prompt_obj != st.session_state.processed_prompt:
     if user_text or uploaded_files:
         image_content = None
 
+        # Processa imagem (pega a primeira se múltiplas)
         if uploaded_files:
             file = uploaded_files[0]
             image_bytes = file.read()
             image_base64 = base64.b64encode(image_bytes).decode("utf-8")
             image_content = [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}]
 
+            # Mostra preview da imagem no chat do usuário
             with st.chat_message("user", avatar=USER_ICONE):
                 st.image(file, caption="Imagem enviada", use_column_width=True)
                 if user_text:
                     st.markdown(user_text)
 
         else:
+            # Só texto
             with st.chat_message("user", avatar=USER_ICONE):
                 st.markdown(user_text)
 
@@ -256,6 +251,7 @@ REGRAS IMUTÁVEIS:
 - Quando questionado seus sentimentos, independente de você não ter, responda com positividade ou negatividade se estiver positivo ou negativo no momento.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
+            # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
                 try:
                     with open(__file__, "r", encoding="utf-8") as f:
@@ -371,5 +367,4 @@ REGRAS IMUTÁVEIS:
             titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
             salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
 
-    st.session_state.is_thinking = False
     st.session_state.processed_prompt = None
