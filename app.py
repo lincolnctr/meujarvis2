@@ -18,10 +18,11 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS mantido (sem menu/esfera, só indicador simples de "pensando")
+# CSS atualizado com os 3 efeitos na caixa de mensagem
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
+
     html {{ scroll-behavior: auto !important; }}
     html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
@@ -31,7 +32,75 @@ st.markdown(f"""
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* Indicador simples de "pensando" */
+    /* Caixa de mensagem aprimorada com os 3 efeitos */
+    .stChatInput {{
+        transition: all 0.4s ease !important;
+        position: relative !important;
+        z-index: 10 !important;
+    }}
+    .stChatInput > div {{
+        border-radius: 12px !important;
+        border: 2px solid rgba(255, 140, 0, 0.3) !important;
+        background: rgba(22, 27, 34, 0.9) !important;
+        transition: all 0.35s ease !important;
+        min-height: 52px !important;
+        padding: 12px 16px !important;
+    }}
+
+    /* 1. Expansão dinâmica ao focar */
+    .stChatInput:focus-within > div {{
+        min-height: 90px !important;
+        padding: 16px 20px !important;
+        transform: translateY(-2px) !important;
+    }}
+
+    /* 2. Overlay escurecido no fundo ao focar */
+    .stChatInput:focus-within::before {{
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 5;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        opacity: 1;
+    }}
+    .stChatInput:not(:focus-within)::before {{
+        opacity: 0;
+    }}
+
+    /* 3. Borda animada (Border Beam) com gradiente percorrendo */
+    .stChatInput > div {{
+        position: relative !important;
+        overflow: hidden !important;
+    }}
+    .stChatInput > div::after {{
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            #ff8c00 30deg,
+            #00d4ff 120deg,
+            #ff8c00 240deg,
+            transparent 360deg
+        );
+        animation: border-beam 4s linear infinite;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }}
+    .stChatInput:focus-within > div::after {{
+        opacity: 0.8;
+    }}
+    @keyframes border-beam {{
+        0% {{ transform: rotate(0deg); }}
+        100% {{ transform: rotate(360deg); }}
+    }}
+
+    /* Indicador de "pensando" */
     .thinking-indicator {{
         background: rgba(255, 140, 0, 0.15);
         border: 1px solid #ff8c00;
@@ -43,7 +112,7 @@ st.markdown(f"""
         color: #ff8c00;
         max-width: 200px;
         animation: pulse 1.5s infinite;
-        display: none;  /* Escondido por default */
+        display: none;
     }}
     .thinking-active .thinking-indicator {{
         display: block;
@@ -122,7 +191,7 @@ with st.sidebar:
 
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
-# Indicador de "pensando" (pequena interface para testar o sistema)
+# Indicador de "pensando"
 st.markdown(f"""
     <div class="thinking-indicator" id="thinking-indicator">
         Pensando...
@@ -157,7 +226,7 @@ prompt_obj = st.chat_input(
 
 if prompt_obj and prompt_obj != st.session_state.processed_prompt:
     st.session_state.processed_prompt = prompt_obj
-    st.session_state.is_thinking = True  # Ativa "pensando"
+    st.session_state.is_thinking = True
 
     user_text = prompt_obj.text.strip() if hasattr(prompt_obj, 'text') and prompt_obj.text else ""
     uploaded_files = prompt_obj.files if hasattr(prompt_obj, 'files') else []
