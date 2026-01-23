@@ -21,9 +21,7 @@ JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6a
 def obter_essencia_do_codigo():
     try:
         with open(__file__, "r", encoding="utf-8") as f:
-            linhas = f.readlines()
-            # Filtra para enviar apenas a lógica vital e economizar tokens
-            return "".join([l for l in linhas if "st.markdown" not in l])
+            return "".join([l for l in f.readlines() if "st.markdown" not in l])
     except: return "Falha no acesso ao Core."
 
 if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
@@ -41,19 +39,25 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# 3. CORE OS: BARRA LATERAL RESTAURADA
+# 3. CORE OS: BARRA LATERAL (SIDEBAR)
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 40)
     humor = st.slider("Humor %", 0, 100, 30)
-    sinceridade = st.slider("Sinceridade %", 0, 100, 90) # Sinceridade voltou
+    sinceridade = st.slider("Sinceridade %", 0, 100, 90)
+    
+    # --- NOVO RECURSO DO "IRMÃO MAIS NOVO" ---
+    st.markdown("---")
+    if st.checkbox("LOG DE MODIFICAÇÕES"):
+        st.info("Melhorias: Divisão em seções e limpeza de comentários.")
+        st.info("Recomendação: Mantenha o código modular para evitar o erro 413.")
     
     st.markdown("---")
     if st.button("+ NOVO PROTOCOLO"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"; st.session_state.messages = []; st.session_state.titulo_atual = "AGUARDANDO..."; st.rerun()
 
-    st.subheader("REGISTROS") # Chats voltaram
+    st.subheader("REGISTROS")
     if os.path.exists(CHATS_DIR):
         for f in sorted(os.listdir(CHATS_DIR), reverse=True):
             cid = f.replace(".json", ""); dados = carregar_chat(cid)
@@ -87,8 +91,9 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             contexto = f"\n\nLÓGICA ATUAL:\n{obter_essencia_do_codigo()}"
 
         sys_msg = (
-            f"Você é o J.A.R.V.I.S., assistente britânico do Senhor Lincoln. "
-            f"Diretriz: Seja ultra-objetivo. Resuma o útil. Sem parênteses para ações. "
+            f"Você é o J.A.R.V.I.S., assistente britânico. "
+            f"REGRAS: 1. Use TÓPICOS apenas se o Senhor Lincoln pedir. "
+            f"2. Seja ultra-objetivo. 3. Sem parênteses para ações. "
             f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
             f"{contexto}"
         )
