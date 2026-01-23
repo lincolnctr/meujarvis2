@@ -143,7 +143,7 @@ REGRAS IMUTÁVEIS:
                 messages=messages,
                 model=model,
                 temperature=0.6,
-                max_tokens=8192,  # Ajustado para limite comum
+                max_tokens=8192,
                 stream=True
             )
 
@@ -152,6 +152,16 @@ REGRAS IMUTÁVEIS:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
+            response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+            st.session_state.messages.append({"role": "assistant", "content": full_res})
+        except Exception as e:
+            response_placeholder.markdown(
+                f'<div class="jarvis-final-box" style="color:red; border: 1px solid red;">'
+                f'Erro na API Groq: {str(e)}<br><br>'
+                f'Detalhes: Verifique o modelo usado ("{model}"), a chave API e os logs do Streamlit Cloud.'
+                f'</div>', 
+                unsafe_allow_html=True
+            )
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
         except Exception as e:
