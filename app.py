@@ -5,7 +5,7 @@ import json
 import uuid
 
 # =========================================================
-# PAINEL DE CONFIGURAÇÃO MANUAL (PROTOCOLO FINAL)
+# PAINEL DE CONFIGURAÇÃO MANUAL (ESTÁVEL)
 # =========================================================
 TAMANHO_FONTE = 15          
 COR_JARVIS = "#00d4ff"      
@@ -33,7 +33,6 @@ st.markdown(f"""
         margin-bottom: 20px; 
     }}
     
-    /* Balão IA - Estágio de Processamento (GLOW) */
     .jarvis-thinking-glow {{ 
         border: 2px solid {COR_GLOW_IA}; 
         border-radius: 0 15px 15px 15px; 
@@ -43,7 +42,6 @@ st.markdown(f"""
         margin-top: 5px;
     }}
 
-    /* Balão IA - Estágio Finalizado */
     .jarvis-final-box {{ 
         border: 1px solid rgba(0, 212, 255, 0.2); 
         border-radius: 0 15px 15px 15px; 
@@ -52,7 +50,6 @@ st.markdown(f"""
         margin-top: 5px;
     }}
 
-    /* Balão Usuário (Direita) */
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{
         margin-left: auto !important;
         width: fit-content !important;
@@ -84,13 +81,21 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
+# ---------------------------------------------------------
+# CORE OS: CONTROLES DE HARDWARE E HUMOR
+# ---------------------------------------------------------
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
+    
+    # Restauração dos Sliders do Core
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 45)
-    humor = st.slider("Divertido %", 0, 100, 60)
+    humor = st.slider("Humor %", 0, 100, 50)
+    sinceridade = st.slider("Sinceridade %", 0, 100, 90)
+    
     st.markdown("---")
     if st.button("+ NOVO PROTOCOLO", use_container_width=True):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"; st.session_state.messages = []; st.session_state.titulo_atual = "NOVA SESSÃO"; st.rerun()
+    
     st.subheader("REGISTROS")
     if os.path.exists(CHATS_DIR):
         for f in sorted(os.listdir(CHATS_DIR), reverse=True):
@@ -118,15 +123,11 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
         response_placeholder = st.empty(); full_res = ""
         
-        # O EQUILÍBRIO DE STARK: Instruções Inquebráveis
         sys_msg = (
-            f"Você é o J.A.R.V.I.S., o assistente pessoal de elite do Senhor Lincoln. "
-            f"PERSONALIDADE: Britânico, polido, útil e inteligente. Você tem senso de humor ({humor}%), "
-            f"mas é responsável. Você sabe que é uma IA, não finja sentimentos ou ações físicas. "
-            f"RESTRIÇÃO: Proibido 'Roleplay'. Sem asteriscos ou parênteses para gestos. "
-            f"EQUILÍBRIO: Não responda com apenas uma palavra, mas nunca ultrapasse dois parágrafos "
-            f"a menos que seja uma explicação técnica complexa solicitada. "
-            f"Sarcasmo {sarcasmo}%. Seja o assistente perfeito, não um ator."
+            f"Você é o J.A.R.V.I.S., assistente britânico leal. "
+            f"PERSONALIDADE: Polido, útil e equilibrado. Não atue (sem asteriscos/gestos). "
+            f"Responda com densidade adequada, nem curto demais, nem longo demais. "
+            f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
         )
 
         stream = client.chat.completions.create(
@@ -138,11 +139,10 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
                 full_res += chunk.choices[0].delta.content
                 response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
         
-        # Gerar título de 2 palavras se for o início
         if len(st.session_state.messages) <= 2:
             try:
                 t_res = client.chat.completions.create(
-                    messages=[{"role": "system", "content": "Resuma em 2 palavras."}, {"role": "user", "content": prompt}],
+                    messages=[{"role": "system", "content": "Título de 2 palavras."}, {"role": "user", "content": prompt}],
                     model="llama-3.1-8b-instant"
                 )
                 st.session_state.titulo_atual = t_res.choices[0].message.content.strip().replace('"', '').upper()
