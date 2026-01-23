@@ -18,7 +18,7 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS atualizado: efeitos de foco na caixa de diálogo (expansão, overlay, brilho RGB contornando)
+# CSS corrigido: overlay desfoca só o fundo, RGB contorna as linhas da caixa
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
@@ -32,7 +32,7 @@ st.markdown(f"""
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* Caixa de diálogo aprimorada (efeitos de foco estilo Google) */
+    /* Caixa de diálogo */
     [data-testid="stChatInput"] {{
         position: relative !important;
         transition: all 0.35s ease !important;
@@ -46,6 +46,8 @@ st.markdown(f"""
         min-height: 52px !important;
         padding: 12px 16px !important;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+        position: relative !important;
+        overflow: hidden !important;
     }}
 
     /* 1. Expansão dinâmica ao focar */
@@ -56,12 +58,12 @@ st.markdown(f"""
         box-shadow: 0 8px 30px rgba(255, 140, 0, 0.3) !important;
     }}
 
-    /* 2. Overlay escurecido no fundo ao focar */
+    /* 2. Overlay escurecido SÓ no fundo (blur pequeno, não afeta a caixa) */
     [data-testid="stChatInput"]:focus-within::before {{
         content: '';
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.45);
+        background: rgba(0, 0, 0, 0.35);
         backdrop-filter: blur(3px);
         z-index: 5;
         pointer-events: none;
@@ -73,17 +75,14 @@ st.markdown(f"""
         transition: opacity 0.4s ease;
     }}
 
-    /* 3. Brilho RGB contornando a caixa (border beam animado) */
-    [data-testid="stChatInput"] > div {{
-        position: relative !important;
-        overflow: hidden !important;
-    }}
+    /* 3. Brilho RGB contornando as linhas da caixa (movimento suave) */
     [data-testid="stChatInput"] > div::after {{
         content: '';
         position: absolute;
         inset: -3px;
+        pointer-events: none;
         background: conic-gradient(
-            from 0deg at 50% 50%,
+            from 90deg at 50% 50%,
             transparent 0deg,
             #ff8c00 60deg,
             #00d4ff 120deg,
@@ -92,16 +91,15 @@ st.markdown(f"""
             #ff8c00 300deg,
             transparent 360deg
         );
-        animation: border-rgb 5s linear infinite;
-        pointer-events: none;
+        animation: border-rgb-flow 6s linear infinite;
         opacity: 0;
         transition: opacity 0.4s ease;
-        border-radius: 18px !important;
+        border-radius: 20px !important;
     }}
     [data-testid="stChatInput"]:focus-within > div::after {{
-        opacity: 0.9;
+        opacity: 0.85;
     }}
-    @keyframes border-rgb {{
+    @keyframes border-rgb-flow {{
         0% {{ transform: rotate(0deg); }}
         100% {{ transform: rotate(360deg); }}
     }}
@@ -197,7 +195,7 @@ with st.sidebar:
 
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
-# Indicador de "pensando" (mantido)
+# Indicador de "pensando"
 st.markdown(f"""
     <div class="thinking-indicator" id="thinking-indicator">
         Pensando...
@@ -221,7 +219,7 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Chat input (com efeitos de foco)
+# Chat input
 prompt_obj = st.chat_input(
     "Comando...",
     accept_file=True,
@@ -286,6 +284,7 @@ REGRAS IMUTÁVEIS:
 - Quando questionado seus sentimentos, independente de você não ter, responda com positividade ou negatividade se estiver positivo ou negativo no momento.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
+            # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
                 try:
                     with open(__file__, "r", encoding="utf-8") as f:
