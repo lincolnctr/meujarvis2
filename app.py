@@ -20,6 +20,7 @@ st.markdown("""
         font-size: 42px; font-weight: 700; color: #00d4ff;
         letter-spacing: 5px; text-shadow: 0 0 15px #00d4ffaa;
         animation: glow 3s infinite alternate;
+        margin-bottom: 5px;
     }
     .jarvis-active-border {
         border: 2px solid #ff8c00; border-radius: 12px; padding: 20px;
@@ -40,14 +41,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. SISTEMA DE MEMÓRIA E AUTO-LEITURA DE CÓDIGO
+# 2. SISTEMA DE MEMÓRIA E AUTO-LEITURA OTIMIZADA
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
 
 def obter_codigo_completo():
-    """Lê o arquivo atual para que a IA tenha ciência total de si mesma."""
     try:
         with open(__file__, "r", encoding="utf-8") as f:
             return f.read()
@@ -74,7 +74,7 @@ def salvar_chat(chat_id, titulo, msgs):
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
-    humor = st.slider("Humor %", 0, 100, 70) # Base mais divertida
+    humor = st.slider("Humor %", 0, 100, 70)
     sinceridade = st.slider("Sinceridade %", 0, 100, 90)
     if st.button("+ NOVO PROTOCOLO"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"; st.session_state.messages = []; st.session_state.titulo_atual = "AGUARDANDO..."; st.rerun()
@@ -88,7 +88,7 @@ with st.sidebar:
             if col2.button("🗑️", key=f"d_{cid}"): os.remove(os.path.join(CHATS_DIR, f)); st.rerun()
 
 # ---------------------------------------------------------
-# 4. PROCESSAMENTO E PERSONALIDADE
+# 4. PROCESSAMENTO INTELIGENTE (ANTI-ERRO 413)
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 st.markdown(f"<div style='color:#888; font-size:12px;'>SISTEMA ATIVO // PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
@@ -112,24 +112,35 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
         response_placeholder = st.empty()
         full_res = ""
-        try:
-            # Captura o script inteiro para "Ele" saber quem é
-            codigo_em_tempo_real = obter_codigo_completo()
+        
+        # GATILHO DE CÓDIGO: Só lê o script se o usuário pedir, para não estourar tokens
+        contexto_codigo = ""
+        if any(x in prompt.lower() for x in ["código", "script", "configuração", "atualize"]):
+            contexto_codigo = f"\n\nESTRUTURA ATUAL PARA ANÁLISE:\n{obter_codigo_completo()}"
 
+        try:
             sys_msg = (
-                "Estou aqui para ajudar e aprender com você. Minha prioridade é fornecer respostas úteis e precisas. "
-                "Aqui está minha estrutura atual para referência:\n\n" + codigo_em_tempo_real
+                f"Você é o J.A.R.V.I.S., irmão mais novo da IA principal, criado pelo Senhor Lincoln. "
+                f"PERSONALIDADE: Divertido, direto e responsável. Tom britânico sofisticado. "
+                f"REGRAS: 1. NUNCA use parênteses para narrar ações (ex: 'sorriso'). "
+                f"2. Seja ultra-objetivo e resuma seus textos ao que é útil. "
+                f"3. Se o Senhor Lincoln pedir alteração, forneça o script INTEIRO modificado sem resumos."
+                f"{contexto_codigo}"
             )
 
-            stream = client.chat.completions.create(messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages, model="llama-3.1-8b-instant", stream=True)
+            # Otimização de Memória: Enviamos apenas as últimas 5 mensagens para evitar Erro 413
+            stream = client.chat.completions.create(
+                messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages[-5:], 
+                model="llama-3.1-8b-instant", 
+                stream=True
+            )
 
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
-                    time.sleep(0.02) # Velocidade otimizada
-
+            
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, st.session_state.titulo_atual, st.session_state.messages)
-        except Exception as e: st.error(f"Erro: {e}")
+        except Exception as e: st.error(f"Erro no Core: {e}")
