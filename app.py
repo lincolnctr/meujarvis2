@@ -149,7 +149,7 @@ REGRAS IMUTÁVEIS:
 - Nunca inicie respostas com saudações como "na área" ou similares.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
-            # AUTO-ATUALIZAÇÃO (ativada por palavras-chave)
+            # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
                 try:
                     with open(__file__, "r", encoding="utf-8") as f:
@@ -161,48 +161,37 @@ REGRAS IMUTÁVEIS:
                     if not update_instruction:
                         update_instruction = "Mantenha o comportamento atual."
 
-                    self_update_prompt = f"""Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.
-Aqui está o código atual exato:
+                    self_update_prompt = (
+                        "Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.\n"
+                        "Aqui está o código atual exato:\n"
+                        "```python\n"
+                        + current_code +
+                        "\n```\n\n"
+                        "Instrução do usuário: " + update_instruction + "\n\n"
+                        "Regras estritas:\n"
+                        "- Faça SOMENTE as alterações pedidas ou implícitas na instrução.\n"
+                        "- Preserve TODA a estrutura, CSS, funções, sidebar, histórico, anti-loop, try-except, etc.\n"
+                        "- Não remova imports, variáveis globais ou funcionalidades existentes.\n"
+                        "- Mantenha o system prompt original intacto.\n"
+                        "- Retorne APENAS o código Python completo atualizado, dentro de um bloco ```python ... ```\n"
+                        "- Não coloque texto explicativo fora do bloco de código."
+                    )
+
+                    self_update_messages = [
+                        {"role": "system", "content": self_update_prompt},
+                        {"role": "user", "content": "Gere o app.py atualizado conforme a instrução."}
+                    ]
+
+                    response = client.chat.completions.create(
+                        messages=self_update_messages,
+                        model="llama-3.3-70b-versatile",
+                        temperature=0.3,
+                        max_tokens=16384,
+                    )
+
+                    updated_code = response.choices[0].message.content.strip()
+
+                    full_res = f"""Aqui está a versão atualizada do meu código fonte (app.py):
+
 ```python
-{current_code}
-
-            # Histórico + mensagem atual
-            history_for_prompt = st.session_state.messages[-10:]
-
-            messages = [{"role": "system", "content": sys_prompt}] + history_for_prompt
-
-            model = "llama-3.3-70b-versatile"
-            if image_content:
-                model = "meta-llama/llama-4-scout-17b-16e-instruct"
-
-            try:
-                stream = client.chat.completions.create(
-                    messages=messages,
-                    model=model,
-                    temperature=0.6,
-                    max_tokens=4096,
-                    stream=True,
-                    timeout=120
-                )
-
-                for chunk in stream:
-                    delta = chunk.choices[0].delta
-                    if delta.content is not None:
-                        full_res += delta.content
-                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
-
-                response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
-                st.session_state.messages.append({"role": "assistant", "content": full_res})
-
-            except groq.BadRequestError as e:
-                response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro Bad Request: {str(e)}</div>', unsafe_allow_html=True)
-            except groq.APITimeoutError as e:
-                response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:orange; border: 1px solid orange; padding: 15px;">Tempo esgotado (visão lenta): {str(e)}</div>', unsafe_allow_html=True)
-            except Exception as e:
-                response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro geral: {str(e)}</div>', unsafe_allow_html=True)
-
-            # Salva chat
-            titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
-            salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
-
-    st.session_state.processed_prompt = None
+{updated_code}
