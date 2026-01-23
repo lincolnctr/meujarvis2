@@ -19,30 +19,40 @@ USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
 # CSS corrigido: overlay desfoca só o fundo, RGB contorna as linhas da caixa
-# CSS Atualizado: Foco, Expansão e Brilho "Edge Beam"
+# CSS Atualizado: Largura Total, Foco, Expansão e Brilho "Edge Beam"
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
+    @import url('https://fonts.googleapis.com');
 
-    /* Configurações Globais */
+    /* --- Configurações Globais --- */
     html {{ scroll-behavior: smooth !important; }}
-    .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
+    .stApp {{ 
+        background-color: #0e1117; 
+        color: #e0e0e0; 
+        /* Usamos padding para garantir espaço para a caixa fixa no fundo */
+        padding-bottom: 120px; 
+    }}
     
-    /* 1. OVERLAY DE FUNDO (Apenas quando a caixa está em foco) */
-    /* Criamos um efeito de escurecimento no container principal quando o input é focado */
+    /* --- 1. OVERLAY DE FUNDO --- */
+    /* Escurece o app principal quando a caixa está focada */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
         background: radial-gradient(circle at bottom, rgba(0, 212, 255, 0.1) 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
-    /* 2. CAIXA DE MENSAGEM - EFEITO DE EXPANSÃO */
+    /* --- 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) --- */
     [data-testid="stChatInput"] {{
         position: fixed !important;
-        bottom: 30px !important;
+        bottom: 0px !important; /* Fixa no rodapé absoluto */
+        width: 100vw !important; /* Ocupa 100% da largura da tela/viewport */
+        left: 0px !important; /* Alinha perfeitamente à esquerda */
         z-index: 1000 !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 10px 20px 30px 20px !important; /* Padding maior para o fundo e laterais */
+        background: #0e1117; /* Fundo opaco para cobrir o conteúdo por baixo */
     }}
 
+    /* --- 3. EFEITO DE EXPANSÃO PARA CIMA E BRILHO NA BORDA --- */
     [data-testid="stChatInput"] textarea {{
         background: rgba(22, 27, 34, 0.8) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -51,20 +61,23 @@ st.markdown(f"""
         padding: 12px !important;
     }}
 
-    /* Expansão visual quando focado */
+    /* Expansão visual e "levitação" quando focado */
     [data-testid="stChatInput"]:focus-within {{
-        transform: translateY(-10px) scale(1.02) !important;
+        /* Move a caixa inteira 20px para cima */
+        transform: translateY(-20px) !important; 
     }}
 
-    /* 3. BRILHO NA BORDA (ESTILO GOOGLE / BEAM BORDER) */
-    /* Usamos um gradiente animado que só aparece no foco */
+    /* Estilo do contêiner interno do Streamlit para o brilho */
     [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important;
-        padding: 2px !important; /* Espaço para a borda brilhar */
+        padding: 2px !important; 
         overflow: hidden;
+        max-width: 1000px; /* Limita a largura em telas muito grandes, se preferir */
+        margin: auto; /* Centraliza no espaço total de 100vw */
     }}
 
+    /* O Efeito de Brilho Animado */
     [data-testid="stChatInput"]:focus-within > div::before {{
         content: "";
         position: absolute;
@@ -82,7 +95,7 @@ st.markdown(f"""
         z-index: -1;
     }}
 
-    /* Camada interna para mascarar o centro e deixar só a borda brilhando */
+    /* Camada interna para mascarar o centro (deixando só a borda brilhando) */
     [data-testid="stChatInput"] > div::after {{
         content: "";
         position: absolute;
@@ -97,23 +110,14 @@ st.markdown(f"""
         to {{ transform: rotate(360deg); }}
     }}
 
-    /* Melhoria nas mensagens (Bolhas) */
-    [data-testid="stChatMessage"] {{
-        animation: fadeIn 0.5s ease forwards;
-    }}
-
-    @keyframes fadeIn {{
-        from {{ opacity: 0; transform: translateY(10px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
-    }}
-
-    /* Esconder bordas padrão do Streamlit que conflitam */
+    /* Ocultar bordas padrão do Streamlit que conflitam */
     [data-testid="stChatInput"] textarea:focus {{
         box-shadow: none !important;
         border-color: transparent !important;
     }}
     </style>
 """, unsafe_allow_html=True)
+
 
 
 CHATS_DIR = "chats_db"
