@@ -47,11 +47,10 @@ with st.sidebar:
     humor = st.slider("Humor %", 0, 100, 30)
     sinceridade = st.slider("Sinceridade %", 0, 100, 90)
     
-    # --- NOVO RECURSO DO "IRMÃO MAIS NOVO" ---
     st.markdown("---")
     if st.checkbox("LOG DE MODIFICAÇÕES"):
-        st.info("Melhorias: Divisão em seções e limpeza de comentários.")
-        st.info("Recomendação: Mantenha o código modular para evitar o erro 413.")
+        st.info("Melhorias: Implementação de Trava de Concisão Máxima.")
+        st.info("Status: Filtro de 'Papo Furado de IA' Ativado.")
     
     st.markdown("---")
     if st.button("+ NOVO PROTOCOLO"):
@@ -68,7 +67,7 @@ with st.sidebar:
             if col2.button("🗑️", key=f"d_{cid}"): os.remove(os.path.join(CHATS_DIR, f)); st.rerun()
 
 # ---------------------------------------------------------
-# 4. PROCESSAMENTO E PERSONALIDADE
+# 4. PROCESSAMENTO E PERSONALIDADE (MODO DIRETO)
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
@@ -91,9 +90,10 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
             contexto = f"\n\nLÓGICA ATUAL:\n{obter_essencia_do_codigo()}"
 
         sys_msg = (
-            f"Você é o J.A.R.V.I.S., assistente britânico. "
-            f"REGRAS: 1. Use TÓPICOS apenas se o Senhor Lincoln pedir. "
-            f"2. Seja ultra-objetivo. 3. Sem parênteses para ações. "
+            f"Você é o J.A.R.V.I.S., assistente pessoal do Senhor Lincoln. "
+            f"DIRETRIZ CRÍTICA: Responda apenas o que foi solicitado. Seja ultra-direto. "
+            f"PROIBIDO: Discursos sobre não ter sentimentos ou ser uma IA. Se perguntado como se sente, responda de forma curta e humana, sem justificativas técnicas. "
+            f"Use TÓPICOS apenas sob demanda explícita. "
             f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
             f"{contexto}"
         )
