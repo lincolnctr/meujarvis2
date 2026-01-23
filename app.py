@@ -149,6 +149,23 @@ REGRAS IMUTÁVEIS:
 - Nunca inicie respostas com saudações como "na área" ou similares.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
+            # AUTO-ATUALIZAÇÃO (ativada por palavras-chave)
+            if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
+                try:
+                    with open(__file__, "r", encoding="utf-8") as f:
+                        current_code = f.read()
+
+                    update_instruction = user_text.lower()
+                    for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]:
+                        update_instruction = update_instruction.replace(kw, "").strip()
+                    if not update_instruction:
+                        update_instruction = "Mantenha o comportamento atual."
+
+                    self_update_prompt = f"""Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.
+Aqui está o código atual exato:
+```python
+{current_code}
+
             # Histórico + mensagem atual
             history_for_prompt = st.session_state.messages[-10:]
 
