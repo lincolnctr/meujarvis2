@@ -89,35 +89,55 @@ for m in st.session_state.messages:
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Upload de imagem (opcional)
-uploaded_file = st.file_uploader("Envie uma imagem para análise (opcional)", type=["jpg", "jpeg", "png"])
+# Chat input integrado com upload de imagem (ícone de anexo ao lado do campo)
+prompt_obj = st.chat_input(
+    "Comando...",
+    accept_file=True,
+    file_type=["jpg", "jpeg", "png"],  # Só imagens
+    max_upload_size=10,                # Limite em MB
+    key="jarvis_chat_input"
+)
 
-image_content = None
-if uploaded_file:
-    image_bytes = uploaded_file.read()
-    image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-    image_content = [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}]
+if prompt_obj and prompt_obj != st.session_state.processed_prompt:
+    st.session_state.processed_prompt = prompt_obj
 
-# Chat input no final
-prompt = st.chat_input("Comando...")
-if prompt and prompt != st.session_state.processed_prompt:
-    st.session_state.processed_prompt = prompt
+    user_text = prompt_obj.text.strip() if hasattr(prompt_obj, 'text') and prompt_obj.text else ""
+    uploaded_files = prompt_obj.files if hasattr(prompt_obj, 'files') else []
 
-    full_user_content = prompt
-    if image_content:
-        full_user_content = [{"type": "text", "text": prompt}] + image_content
+    if user_text or uploaded_files:
+        image_content = None
 
-    st.session_state.messages.append({"role": "user", "content": full_user_content})
-    with st.chat_message("user", avatar=USER_ICONE):
-        st.markdown(prompt)
+        # Processa imagem (pega a primeira se múltiplas)
+        if uploaded_files:
+            file = uploaded_files[0]
+            image_bytes = file.read()
+            image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+            image_content = [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}]
 
-    memoria_perfil = carregar_perfil()
+            # Mostra preview da imagem no chat do usuário
+            with st.chat_message("user", avatar=USER_ICONE):
+                st.image(file, caption="Imagem enviada", use_column_width=True)
+                if user_text:
+                    st.markdown(user_text)
 
-    with st.chat_message("assistant", avatar=JARVIS_ICONE):
-        response_placeholder = st.empty()
-        full_res = ""
+        else:
+            # Só texto
+            with st.chat_message("user", avatar=USER_ICONE):
+                st.markdown(user_text)
 
-        sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal e eficiente do Senhor Lincoln.
+        full_user_content = user_text
+        if image_content:
+            full_user_content = [{"type": "text", "text": user_text}] + image_content
+
+        st.session_state.messages.append({"role": "user", "content": full_user_content})
+
+        memoria_perfil = carregar_perfil()
+
+        with st.chat_message("assistant", avatar=JARVIS_ICONE):
+            response_placeholder = st.empty()
+            full_res = ""
+
+            sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal e eficiente do Senhor Lincoln.
 REGRAS IMUTÁVEIS:
 - Use sempre a MEMÓRIA DE PERFIL: {memoria_perfil}
 - Estilo: técnico, direto, preciso, profissional. Britânico em tom quando apropriado.
@@ -129,58 +149,43 @@ REGRAS IMUTÁVEIS:
 - Nunca inicie respostas com saudações como "na área" ou similares.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
-        # Usa mais contexto (últimas 10 mensagens)
-        history_for_prompt = st.session_state.messages[-10:]
+            # Histórico + mensagem atual
+            history_for_prompt = st.session_state.messages[-10:]
 
-        messages = [{"role": "system", "content": sys_prompt}] + history_for_prompt
+            messages = [{"role": "system", "content": sys_prompt}] + history_for_prompt
 
-        # Modelo atualizado
-        model = "llama-3.3-70b-versatile"  # Para texto normal
-        if image_content:
-            model = "meta-llama/llama-4-scout-17b-16e-instruct"  # Multimodal/vision oficial 2026
+            model = "llama-3.3-70b-versatile"
+            if image_content:
+                model = "meta-llama/llama-4-scout-17b-16e-instruct"
 
-        try:
-            # Timeout explícito + parâmetros otimizados para visão
-            stream = client.chat.completions.create(
-                messages=messages,
-                model=model,
-                temperature=0.6,
-                max_tokens=4096,          # Reduzido para evitar stall em visão
-                stream=True,
-                timeout=120               # Timeout de 2 minutos para visão (Groq default é baixo)
-            )
+            try:
+                stream = client.chat.completions.create(
+                    messages=messages,
+                    model=model,
+                    temperature=0.6,
+                    max_tokens=4096,
+                    stream=True,
+                    timeout=120
+                )
 
-            for chunk in stream:
-                delta = chunk.choices[0].delta
-                if delta.content is not None:
-                    full_res += delta.content
-                    response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+                for chunk in stream:
+                    delta = chunk.choices[0].delta
+                    if delta.content is not None:
+                        full_res += delta.content
+                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-            # Finaliza
-            response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
-            st.session_state.messages.append({"role": "assistant", "content": full_res})
+                response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+                st.session_state.messages.append({"role": "assistant", "content": full_res})
 
-        except groq.BadRequestError as e:
-            response_placeholder.markdown(
-                f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">'
-                f'Erro Bad Request na Groq (provável modelo ou formato inválido): {str(e)}'
-                f'</div>', unsafe_allow_html=True
-            )
-        except groq.APITimeoutError as e:
-            response_placeholder.markdown(
-                f'<div class="jarvis-final-box" style="color:orange; border: 1px solid orange; padding: 15px;">'
-                f'Tempo esgotado na API Groq (visão pode ser lenta). Tente imagem menor ou sem foto.'
-                f'</div>', unsafe_allow_html=True
-            )
-        except Exception as e:
-            response_placeholder.markdown(
-                f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">'
-                f'Erro geral na API Groq durante visão: {str(e)}<br>'
-                f'Tente: imagem menor (<5MB), prompt simples, ou desative upload temporariamente.'
-                f'</div>', unsafe_allow_html=True
-            )
+            except groq.BadRequestError as e:
+                response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro Bad Request: {str(e)}</div>', unsafe_allow_html=True)
+            except groq.APITimeoutError as e:
+                response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:orange; border: 1px solid orange; padding: 15px;">Tempo esgotado (visão lenta): {str(e)}</div>', unsafe_allow_html=True)
+            except Exception as e:
+                response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro geral: {str(e)}</div>', unsafe_allow_html=True)
 
-        # Salva chat (mesmo com erro, para não perder histórico)
-        titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
-        salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+            # Salva chat
+            titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
+            salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+
     st.session_state.processed_prompt = None
