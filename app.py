@@ -31,12 +31,12 @@ COR_BRILHO_3 = "#ff4500"  # Cor de destaque (Laranja Avermelhado)
 
 st.markdown(f"""
     <style>
+    /* Definimos as variáveis CSS globalmente para fácil personalização */
     :root {{
-        /* ########## PERSONALIZE AS CORES ABAIXO ########## */
         --cor-brilho-inicio: {COR_BRILHO_1}; 
         --cor-brilho-meio: {COR_BRILHO_2};
         --cor-brilho-fim: {COR_BRILHO_3};
-        /* ################################################ */
+        --bg-input: #161b22; /* Fundo escuro do input */
     }}
 
     @import url('https://fonts.googleapis.com');
@@ -44,13 +44,13 @@ st.markdown(f"""
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
     
-    /* Overlay de Fundo */
+    /* 1. OVERLAY DE FUNDO */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
-        background: radial-gradient(circle at bottom, {COR_BRILHO_1}11 0%, #05070a 100%) !important;
+        background: radial-gradient(circle at bottom, var(--cor-brilho-inicio)11 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
-    /* Container da Caixa de Mensagem */
+    /* 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
@@ -75,15 +75,17 @@ st.markdown(f"""
         transform: translateY(-20px) !important; 
     }}
 
+    /* Container interno com padding lateral para o texto */
     [data-testid="stChatInput"] > div {{
         position: relative;
-        border-radius: 14px !important;
+        /* Define um border-radius para o contorno */
+        border-radius: 16px !important; 
         padding: 2px !important; 
         overflow: hidden;
         margin: 0 20px; 
     }}
 
-    /* ########## ANIMAÇÃO DO BRILHO (RGB CUSTOMIZÁVEL) ########## */
+    /* ########## ANIMAÇÃO DO BRILHO (CONTORNO RGB CORRIGIDO) ########## */
     [data-testid="stChatInput"]:focus-within > div::before {{
         content: "";
         position: absolute;
@@ -91,6 +93,7 @@ st.markdown(f"""
         left: -50%;
         width: 200%;
         height: 200%;
+        /* Usa as variáveis de cor e garante a rotação */
         background: conic-gradient(
             transparent, 
             var(--cor-brilho-inicio), 
@@ -101,16 +104,19 @@ st.markdown(f"""
         animation: rotate-border 4s linear infinite;
         z-index: -1;
     }}
-    /* ########################################################## */
 
+    /* A camada preta interna que MASCA o gradiente, deixando só o contorno visível */
     [data-testid="stChatInput"] > div::after {{
         content: "";
         position: absolute;
-        inset: 2px;
-        background: #161b22;
-        border-radius: 12px;
+        /* inset define o quão grossa a borda será (ex: 2px significa 2px de borda) */
+        inset: 2px; 
+        background: var(--bg-input);
+        /* Usa o mesmo border-radius do contêiner externo menos 2px de cada lado */
+        border-radius: 14px; 
         z-index: -1;
     }}
+    /* ###################################################################### */
 
     @keyframes rotate-border {{
         from {{ transform: rotate(0deg); }}
@@ -123,6 +129,7 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
 
 
 
