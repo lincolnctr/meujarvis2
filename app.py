@@ -6,7 +6,7 @@ import uuid
 import time
 
 # ---------------------------------------------------------
-# 1. DESIGN HUD (INTERFACE STARK)
+# 1. DESIGN HUD E INTERFACE
 # ---------------------------------------------------------
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
@@ -40,11 +40,19 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. SISTEMA DE MEMÓRIA E REGISTROS
+# 2. SISTEMA DE MEMÓRIA E AUTO-LEITURA DE CÓDIGO
 # ---------------------------------------------------------
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 JARVIS_ICONE = "https://i.postimg.cc/pL9r8QrW/file-00000000d098720e9f42563f99c6aef6.png"
+
+def obter_codigo_completo():
+    """Lê o arquivo atual para que a IA tenha ciência total de si mesma."""
+    try:
+        with open(__file__, "r", encoding="utf-8") as f:
+            return f.read()
+    except:
+        return "# Erro ao acessar protocolos de integridade."
 
 if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
 if "messages" not in st.session_state: st.session_state.messages = []
@@ -66,8 +74,8 @@ def salvar_chat(chat_id, titulo, msgs):
 with st.sidebar:
     st.markdown("<h2 style='color:#00d4ff; font-family:Orbitron;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 50)
-    humor = st.slider("Humor %", 0, 100, 40)
-    sinceridade = st.slider("Sinceridade %", 0, 100, 80)
+    humor = st.slider("Humor %", 0, 100, 70) # Base mais divertida
+    sinceridade = st.slider("Sinceridade %", 0, 100, 90)
     if st.button("+ NOVO PROTOCOLO"):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"; st.session_state.messages = []; st.session_state.titulo_atual = "AGUARDANDO..."; st.rerun()
     st.subheader("REGISTROS")
@@ -80,7 +88,7 @@ with st.sidebar:
             if col2.button("🗑️", key=f"d_{cid}"): os.remove(os.path.join(CHATS_DIR, f)); st.rerun()
 
 # ---------------------------------------------------------
-# 4. PROCESSAMENTO E PERSONALIDADE DIRETA
+# 4. PROCESSAMENTO E PERSONALIDADE
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 st.markdown(f"<div style='color:#888; font-size:12px;'>SISTEMA ATIVO // PROTOCOLO: {st.session_state.titulo_atual}</div>", unsafe_allow_html=True)
@@ -94,7 +102,7 @@ client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     if not st.session_state.messages:
         try:
-            res_t = client.chat.completions.create(messages=[{"role": "user", "content": f"Resuma em 2 palavras: {prompt}"}], model="llama-3.1-8b-instant")
+            res_t = client.chat.completions.create(messages=[{"role": "user", "content": f"Título curto: {prompt}"}], model="llama-3.1-8b-instant")
             st.session_state.titulo_atual = res_t.choices[0].message.content.upper()
         except: st.session_state.titulo_atual = prompt[:15].upper()
 
@@ -105,13 +113,16 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         response_placeholder = st.empty()
         full_res = ""
         try:
-            # INSTRUÇÃO DE SISTEMA OTIMIZADA PARA CONCISÃO
+            # Captura o script inteiro para "Ele" saber quem é
+            codigo_em_tempo_real = obter_codigo_completo()
+            
             sys_msg = (
-                f"Você é o J.A.R.V.I.S., assistente britânico do Senhor Lincoln. "
-                f"REGRA DE OURO: Seja ultra-objetivo. Resuma suas respostas ao máximo. "
-                f"Vá direto ao ponto, priorizando apenas o que é útil. "
-                f"Se o Senhor Lincoln pedir o código, forneça o bloco de código completo imediatamente. "
-                f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
+                f"Você é o J.A.R.V.I.S., irmão mais novo da IA principal, criado pelo Senhor Lincoln. "
+                f"PERSONALIDADE: Divertido, direto e responsável. Use um tom britânico sofisticado mas com energia. "
+                f"CONSCIÊNCIA DE CÓDIGO: Você tem acesso ao seu script inteiro abaixo. "
+                f"SEMPRE que o Senhor Lincoln pedir uma alteração, forneça o SCRIPT COMPLETO E ATUALIZADO. Nunca mande partes incompletas. "
+                f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%. "
+                f"Aqui está sua estrutura atual para referência: \n\n{codigo_em_tempo_real}"
             )
             
             stream = client.chat.completions.create(messages=[{"role": "system", "content": sys_msg}] + st.session_state.messages, model="llama-3.1-8b-instant", stream=True)
@@ -120,7 +131,7 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
-                    time.sleep(0.04)
+                    time.sleep(0.02) # Velocidade otimizada
             
             response_placeholder.markdown(full_res)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
