@@ -93,8 +93,8 @@ client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 prompt_obj = st.chat_input(
     "Comando...",
     accept_file=True,
-    file_type=["jpg", "jpeg", "png"],  # Só imagens
-    max_upload_size=10,                # Limite em MB
+    file_type=["jpg", "jpeg", "png"],
+    max_upload_size=10,
     key="jarvis_chat_input"
 )
 
@@ -107,21 +107,18 @@ if prompt_obj and prompt_obj != st.session_state.processed_prompt:
     if user_text or uploaded_files:
         image_content = None
 
-        # Processa imagem (pega a primeira se múltiplas)
         if uploaded_files:
             file = uploaded_files[0]
             image_bytes = file.read()
             image_base64 = base64.b64encode(image_bytes).decode("utf-8")
             image_content = [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}]
 
-            # Mostra preview da imagem no chat do usuário
             with st.chat_message("user", avatar=USER_ICONE):
                 st.image(file, caption="Imagem enviada", use_column_width=True)
                 if user_text:
                     st.markdown(user_text)
 
         else:
-            # Só texto
             with st.chat_message("user", avatar=USER_ICONE):
                 st.markdown(user_text)
 
@@ -165,8 +162,8 @@ REGRAS IMUTÁVEIS:
                         "Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.\n"
                         "Aqui está o código atual exato:\n"
                         "```python\n"
-                        + current_code +
-                        "\n```\n\n"
+                        + current_code
+                        + "\n```\n\n"
                         "Instrução do usuário: " + update_instruction + "\n\n"
                         "Regras estritas:\n"
                         "- Faça SOMENTE as alterações pedidas ou implícitas na instrução.\n"
@@ -193,12 +190,64 @@ REGRAS IMUTÁVEIS:
 
                     full_res = (
                         "Aqui está a versão atualizada do meu código fonte (app.py):\n\n"
-                        "```python\n" +
-                        updated_code +
-                        "\n```\n\n"
+                        "```python\n"
+                        + updated_code
+                        + "\n```\n\n"
                         "**Instruções para aplicar:**\n"
                         "1. Copie TODO o conteúdo dentro do bloco ```python ... ```\n"
                         "2. Substitua o arquivo app.py inteiro no seu repositório GitHub.\n"
                         "3. Faça commit e push.\n"
                         "4. O Streamlit Cloud redeploya automaticamente."
                     )
+
+                    response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+                    st.session_state.messages.append({"role": "assistant", "content": full_res})
+
+                    titulo_chat = "Auto-atualização"
+                    salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+
+                except Exception as e:
+                    full_res = f"Erro ao gerar atualização automática: {str(e)}\n\nTente novamente."
+                    response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+
+            else:
+                # Processamento normal (texto ou imagem)
+                history_for_prompt = st.session_state.messages[-10:]
+
+                messages = [{"role": "system", "content": sys_prompt}] + history_for_prompt
+
+                model = "llama-3.3-70b-versatile"
+                if image_content:
+                    model = "meta-llama/llama-4-scout-17b-16e-instruct"
+
+                try:
+                    stream = client.chat.completions.create(
+                        messages=messages,
+                        model=model,
+                        temperature=0.6,
+                        max_tokens=4096,
+                        stream=True,
+                        timeout=120
+                    )
+
+                    for chunk in stream:
+                        delta = chunk.choices[0].delta
+                        if delta.content is not None:
+                            full_res += delta.content
+                            response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+
+                    response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+                    st.session_state.messages.append({"role": "assistant", "content": full_res})
+
+                except groq.BadRequestError as e:
+                    response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro Bad Request: {str(e)}</div>', unsafe_allow_html=True)
+                except groq.APITimeoutError as e:
+                    response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:orange; border: 1px solid orange; padding: 15px;">Tempo esgotado (visão lenta): {str(e)}</div>', unsafe_allow_html=True)
+                except Exception as e:
+                    response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro geral: {str(e)}</div>', unsafe_allow_html=True)
+
+            # Salva chat (sempre)
+            titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
+            salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+
+    st.session_state.processed_prompt = None
