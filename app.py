@@ -41,6 +41,7 @@ if "messages" not in st.session_state: st.session_state.messages = []
 if "processed_prompt" not in st.session_state: st.session_state.processed_prompt = None
 if "log_modificacoes" not in st.session_state: st.session_state.log_modificacoes = []
 if "humor_nivel" not in st.session_state: st.session_state.humor_nivel = 20
+if "sinceridade_nivel" not in st.session_state: st.session_state.sinceridade_nivel = 50
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -64,6 +65,8 @@ with st.sidebar:
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 30, key="sarcasmo_slider")
     humor = st.slider("Humor %", 0, 100, st.session_state.humor_nivel, key="humor_slider")
     st.session_state.humor_nivel = humor
+    sinceridade = st.slider("Sinceridade %", 0, 100, st.session_state.sinceridade_nivel, key="sinceridade_slider")
+    st.session_state.sinceridade_nivel = sinceridade
 
     if st.button("+ NOVO PROTOCOLO (RESET)"):
         st.session_state.messages = []
@@ -148,6 +151,7 @@ REGRAS IMUTÁVEIS:
 - Use sempre a MEMÓRIA DE PERFIL: {memoria_perfil}
 - Estilo: técnico, direto, preciso, profissional. Britânico em tom quando apropriado.
 - Sarcasmo: {sarcasmo}%. Humor: {st.session_state.humor_nivel}%. Aplique com moderação e apenas se fizer sentido no contexto.
+- Sinceridade: {st.session_state.sinceridade_nivel}%. Forneça respostas honestas e transparentes, sem meias verdades ou evasivas.
 - Seja útil, objetivo e breve na resposta principal. Forneça detalhes adicionais apenas se solicitado.
 - Analise imagens com precisão e objetividade quando enviadas (descreva conteúdo, identifique elementos relevantes, forneça observações úteis).
 - Nunca use gírias, linguagem coloquial excessiva, palavrões ou tom adolescente.
@@ -272,4 +276,3 @@ REGRAS IMUTÁVEIS:
                 response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
 
     st.session_state.processed_prompt = None
-                    
