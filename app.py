@@ -7,7 +7,7 @@ import uuid
 # =========================================================
 # PAINEL DE CONFIGURAÇÃO MANUAL
 # =========================================================
-TAMANHO_FONTE = 14          # Ajuste o tamanho da letra aqui
+TAMANHO_FONTE = 16          # Ajuste o tamanho da letra aqui
 COR_JARVIS = "#00d4ff"      # Cor do tema
 DISTANCIA_LINHAS = 1.5      
 # =========================================================
@@ -83,7 +83,7 @@ with st.sidebar:
             if col_txt.button(f"• {dados.get('titulo', 'Sessão')[:20]}", key=f"b_{cid}"):
                 st.session_state.chat_atual, st.session_state.messages = cid, dados['messages']
                 st.session_state.titulo_atual = dados.get('titulo', 'Sessão'); st.rerun()
-            if col_del.button("🗑️", key=f"d_{cid}"):
+            if col_del.button("×", key=f"d_{cid}"):
                 os.remove(os.path.join(CHATS_DIR, f)); st.rerun()
 
 # ---------------------------------------------------------
