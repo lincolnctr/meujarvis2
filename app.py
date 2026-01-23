@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 from groq import Groq
 import os
@@ -38,6 +39,7 @@ if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
 if "messages" not in st.session_state: st.session_state.messages = []
 if "processed_prompt" not in st.session_state: st.session_state.processed_prompt = None
+if "log_modificacoes" not in st.session_state: st.session_state.log_modificacoes = []
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -60,11 +62,11 @@ with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 30, key="sarcasmo_slider")
     humor = st.slider("Humor %", 0, 100, 20, key="humor_slider")
-    
+
     if st.button("+ NOVO PROTOCOLO (RESET)"):
         st.session_state.messages = []
         st.rerun()
-    
+
     st.subheader("REGISTROS")
     if os.path.exists(CHATS_DIR):
         for f in sorted(os.listdir(CHATS_DIR), reverse=True):
@@ -78,6 +80,11 @@ with st.sidebar:
             if col_del.button("🗑️", key=f"d_{cid}"):
                 os.remove(os.path.join(CHATS_DIR, f))
                 st.rerun()
+
+    st.subheader("LOG DE MODIFICAÇÕES")
+    if st.session_state.log_modificacoes:
+        for log in st.session_state.log_modificacoes:
+            st.write(log)
 
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
@@ -206,6 +213,8 @@ REGRAS IMUTÁVEIS:
                     titulo_chat = "Auto-atualização"
                     salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
 
+                    st.session_state.log_modificacoes.append(f"Atualização automática em {st.session_state.chat_atual}: {update_instruction}")
+
                 except Exception as e:
                     full_res = f"Erro ao gerar atualização automática: {str(e)}\n\nTente novamente."
                     response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
@@ -251,3 +260,4 @@ REGRAS IMUTÁVEIS:
             salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
 
     st.session_state.processed_prompt = None
+            
