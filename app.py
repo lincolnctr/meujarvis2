@@ -161,7 +161,8 @@ REGRAS IMUTÁVEIS:
                     if not update_instruction:
                         update_instruction = "Mantenha o comportamento atual."
 
-                    self_update_prompt = f"""Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.
+                    self_update_prompt = f"""
+Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.
 Aqui está o código atual exato:
 ```python
 {current_code}
