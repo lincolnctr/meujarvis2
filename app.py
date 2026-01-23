@@ -9,6 +9,7 @@ import uuid
 # =========================================================
 TAMANHO_FONTE = 14          
 COR_JARVIS = "#00d4ff"      
+COR_GLOW_IA = "#ff8c00"      # O laranja neon original
 DISTANCIA_LINHAS = 1.5      
 # =========================================================
 
@@ -34,44 +35,33 @@ st.markdown(f"""
         margin-bottom: 15px; 
     }}
     
-    /* --- CORREÇÃO DOS BALÕES DE CHAT --- */
+    /* --- EFEITO DE BRILHO E BALÕES --- */
     
-    /* Alinhamento Geral */
-    [data-testid="stChatMessage"] {{
-        background-color: transparent !important;
-        margin-bottom: 1rem;
+    /* Balão da IA com Brilho Laranja (Esquerda) */
+    .jarvis-active-border {{ 
+        border: 2px solid {COR_GLOW_IA}; 
+        border-radius: 0 15px 15px 15px; 
+        padding: 12px 18px; 
+        background: rgba(22, 27, 34, 0.9); 
+        box-shadow: 0 0 15px {COR_GLOW_IA}44, inset 0 0 10px {COR_GLOW_IA}22;
+        margin-top: 5px;
+        text-align: left !important;
     }}
 
-    /* Mensagem do Usuário (Empurrada para a Direita) */
+    /* Balão do Usuário (Direita) */
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{
         margin-left: auto !important;
         width: fit-content !important;
         max-width: 80% !important;
         background: rgba(0, 212, 255, 0.1) !important;
+        border: 1px solid rgba(0, 212, 255, 0.3);
         border-radius: 15px 15px 0 15px !important;
         padding: 10px !important;
     }}
 
-    /* Mensagem da IA (Mantida na Esquerda) */
-    [data-testid="stChatMessage"]:has(img) {{
-        margin-right: auto !important;
-        width: fit-content !important;
-        max-width: 85% !important;
-    }}
-
-    .jarvis-active-border {{ 
-        border: 1px solid rgba(255, 140, 0, 0.4); 
-        border-radius: 0 15px 15px 15px; padding: 12px 18px; 
-        background: rgba(22, 27, 34, 0.8); 
-        text-align: left !important;
-    }}
-
-    /* Estilização da Lixeira ao Lado do Botão */
-    .sidebar-row {{
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-    }}
+    /* Remove fundos padrão do Streamlit para não bugar o visual */
+    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
+    
     </style>
 """, unsafe_allow_html=True)
 
@@ -94,7 +84,7 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 # ---------------------------------------------------------
-# SIDEBAR RECONFIGURADA
+# SIDEBAR
 # ---------------------------------------------------------
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
@@ -104,8 +94,8 @@ with st.sidebar:
     
     st.markdown("---")
     if st.checkbox("LOG DE MODIFICAÇÕES", value=True):
-        st.info("Layout de Diálogo: Usuário (Dir) / IA (Esq)")
-        st.success("Lixeira: Alinhamento Estabilizado")
+        st.info("Efeito de Brilho IA: Restaurado")
+        st.success("Layout: Espelhado e Estável")
     
     if st.button("+ NOVO PROTOCOLO", use_container_width=True):
         st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"; st.session_state.messages = []; st.session_state.titulo_atual = "NOVA SESSÃO"; st.rerun()
@@ -114,7 +104,6 @@ with st.sidebar:
     if os.path.exists(CHATS_DIR):
         for f in sorted(os.listdir(CHATS_DIR), reverse=True):
             cid = f.replace(".json", ""); dados = carregar_chat(cid)
-            # Layout de linha para alinhar lixeira ao lado
             col_txt, col_del = st.columns([0.8, 0.2])
             with col_txt:
                 if st.button(f"• {dados.get('titulo', 'Sessão')[:15]}", key=f"b_{cid}"):
@@ -125,7 +114,7 @@ with st.sidebar:
                     os.remove(os.path.join(CHATS_DIR, f)); st.rerun()
 
 # ---------------------------------------------------------
-# PROCESSAMENTO PRINCIPAL
+# PROCESSAMENTO
 # ---------------------------------------------------------
 st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
@@ -145,7 +134,6 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
         response_placeholder = st.empty(); full_res = ""
         
-        # Gerador de Título Curto
         if len(st.session_state.messages) <= 2:
             try:
                 t_res = client.chat.completions.create(
@@ -153,7 +141,7 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
                     model="llama-3.1-8b-instant"
                 )
                 st.session_state.titulo_atual = t_res.choices[0].message.content.strip().replace('"', '').upper()
-            except: st.session_state.titulo_atual = "NOVA SESSÃO"
+            except: st.session_state.titulo_atual = "SESSÃO ATIVA"
 
         sys_msg = f"Você é o J.A.R.V.I.S., assistente britânico. Sarcasmo {sarcasmo}%, Humor {humor}%."
 
@@ -164,6 +152,7 @@ if prompt := st.chat_input("Comando, Senhor Lincoln..."):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 full_res += chunk.choices[0].delta.content
+                # Brilho enquanto gera
                 response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}█</div>', unsafe_allow_html=True)
         
         response_placeholder.markdown(f'<div class="jarvis-active-border">{full_res}</div>', unsafe_allow_html=True)
