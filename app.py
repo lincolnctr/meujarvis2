@@ -60,7 +60,7 @@ st.markdown(f"""
 
     .jarvis-thinking-glow {{ 
         border: 2px solid {COR_GLOW_IA}; 
-        border-radius: 0 15px 15px 15px; 
+        border-radius: 0 25px 25px 25px; 
         padding: 15px; 
         background: rgba(22, 27, 34, 0.9); 
         box-shadow: 0 0 20px {COR_GLOW_IA}55; 
