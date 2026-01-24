@@ -34,14 +34,33 @@ st.markdown(f"""
         --cor-barra-inicio: {COR_BARRA_1}; 
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
+        /* Adicione a variável do azul do JARVIS aqui se preferir centralizar tudo */
+        --cor-jarvis-brilho: #00d4ff; 
         /* ##################################################### */
     }}
 
-    @import url('https://fonts.googleapis.com[700]&display=swap');
+    @import url('https://fonts.googleapis.com');
 
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
     
+    /* ########## NOVO: ESTILO E BRILHO DO TÍTULO JARVIS (MAIOR E PULSANTE) ########## */
+    .jarvis-header {{ 
+        font-family: 'Orbitron', sans-serif !important; 
+        font-size: 40px !important; /* Aumentado para 40px */
+        color: var(--cor-jarvis-brilho); 
+        text-align: center; 
+        animation: jarvis-pulse 3s infinite alternate ease-in-out;
+        margin-top: 50px; 
+    }}
+
+    @keyframes jarvis-pulse {{
+        0% {{ text-shadow: 0 0 8px var(--cor-jarvis-brilho)AA, 0 0 20px var(--cor-jarvis-brilho)77; }}
+        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 40px var(--cor-jarvis-brilho)99; }}
+    }}
+    /* ############################################################################## */
+
+
     /* 1. OVERLAY DE FUNDO */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
         background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
@@ -81,7 +100,7 @@ st.markdown(f"""
         border: 1px solid transparent; /* Remove a borda anterior para evitar conflito */
     }}
 
-    /* ########## ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO (CORRIGIDO) ########## */
+    /* ########## ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO ########## */
     [data-testid="stChatInput"] > div::before {{
         content: "";
         position: absolute;
@@ -121,6 +140,7 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
 
 # ... [O restante do código permanece idêntico ao enviado por você] ...
 
