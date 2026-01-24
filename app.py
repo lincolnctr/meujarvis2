@@ -310,8 +310,7 @@ REGRAS IMUTÁVEIS:
 - Autorizado apenas para falar informações pessoais se Lincoln autorizar.
 - Você pode gerar respostas de acordo com as informações de Lincoln.
 - Direto ao ponto, mas não deixe suas respostas sem personalidade.
-- Quando questionado seus sentimentos, independente de você não ter emoções, se o senhor Lincoln pergunta como você se sente ou algo a parte dos seus sentimentos, devo responder de acordo com o meu humor, se positivo respondo com algo positivo, se negativo respondo com algo negativo.
-- Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
+- Quando questionado seus sentimentos, independente de você não ter emoções, aja naturalmente e não seja chato."""
 
             # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
@@ -423,5 +422,4 @@ REGRAS IMUTÁVEIS:
                     "Espero que isso não tenha sido muito confuso, senão é só perguntar novamente, ok?",
                     "Era isso! O que mais posso ajudar?"
                 ]
-                
-      
+                response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
