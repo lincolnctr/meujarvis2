@@ -37,59 +37,18 @@ st.markdown(f"""
         /* ##################################################### */
     }}
 
-    @import url('https://fonts.googleapis.com');
+    @import url('https://fonts.googleapis.com[700]&display=swap');
 
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
-
-    .jarvis-header {{ 
-        font-family: 'orbitron', sans-serif !important; 
-        font-size: 26px !important; 
-        color: var(--cor-jarvis-brilho); 
-        text-align: center; 
-        animation: jarvis-pulse 3s infinite alternate ease-in-out;
-    }}
-
-    @keyframes jarvis-pulse {{
-        0% {{ text-shadow: 0 0 5px var(--cor-jarvis-brilho)aa, 0 0 15px var(--cor-jarvis-brilho)77; }}
-        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 40px var(--cor-jarvis-brilho)99; }}
-    }}
-
-    .jarvis-thinking-glow {{ 
-        border: 2px solid {COR_GLOW_IA}; 
-        border-radius: 0 25px 25px 25px; 
-        padding: 15px; 
-        background: rgba(22, 27, 34, 0.9); 
-        box-shadow: 0 0 20px {COR_GLOW_IA}55; 
-        margin-top: 5px;
-        max-width: var(--largura-maxima-msgs) !important; /* Expansão J.A.R.V.I.S. */
-    }}
-
-    .jarvis-final-box {{ 
-        border: 1px solid rgba(0, 212, 255, 0.05); 
-        border-radius: 0 15px 15px 15px; 
-        padding: 15px; 
-        background: rgba(255, 255, 255, 0.05); 
-        margin-top: 5px;
-        max-width: var(--largura-maxima-msgs) !important; /* Expansão J.A.R.V.I.S. */
-    }}
-
-    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ 
-        margin-left: auto !important; 
-        width: fit-content !important; 
-        max-width: var(--largura-maxima-msgs) !important; /* Expansão Lincoln */
-        background: rgba(0, 212, 255, 0.1) !important; 
-        border: 1px solid rgba(0, 212, 255, 0.3); 
-        border-radius: 15px 15px 0 15px !important; 
-    }}
-
-    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-
+    
+    /* 1. OVERLAY DE FUNDO */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
         background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
+    /* 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
@@ -105,8 +64,60 @@ st.markdown(f"""
         background: rgba(22, 27, 34, 0.8) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 12px !important;
+        transition: all 0.3s ease !important;
         padding: 12px !important;
         width: 100% !important; 
+    }}
+
+    [data-testid="stChatInput"]:focus-within {{
+        transform: translateY(-20px) !important; 
+    }}
+
+    [data-testid="stChatInput"] > div {{
+        position: relative;
+        border-radius: 14px !important; 
+        overflow: hidden; /* Mantém a barra de brilho confinada à borda */
+        margin: 0 20px; 
+        border: 1px solid transparent; /* Remove a borda anterior para evitar conflito */
+    }}
+
+    /* ########## ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO (CORRIGIDO) ########## */
+    [data-testid="stChatInput"] > div::before {{
+        content: "";
+        position: absolute;
+        top: 0; /* Posiciona no topo exato */
+        left: 0;
+        width: 100%;
+        height: 2px; /* Espessura da barra */
+        /* Gradiente linear que desliza */
+        background: linear-gradient(
+            to right, 
+            transparent, 
+            var(--cor-barra-inicio), 
+            var(--cor-barra-meio), 
+            var(--cor-barra-fim),
+            transparent
+        );
+        /* Inicia fora da tela (-100%) e desliza 200% para a direita */
+        transform: translateX(-100%); 
+        animation: slide-right 2s linear infinite;
+        opacity: 0; /* Invisível por padrão */
+        transition: opacity 0.3s ease;
+    }}
+
+    [data-testid="stChatInput"]:focus-within > div::before {{
+        opacity: 1; /* Aparece ao focar */
+    }}
+
+    @keyframes slide-right {{
+        0% {{ transform: translateX(-100%); }}
+        100% {{ transform: translateX(100%); }}
+    }}
+    /* ###################################################################### */
+
+    [data-testid="stChatInput"] textarea:focus {{
+        box-shadow: none !important;
+        border-color: transparent !important;
     }}
     </style>
 """, unsafe_allow_html=True)
