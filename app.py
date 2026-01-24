@@ -34,81 +34,112 @@ st.markdown(f"""
         --cor-barra-inicio: {COR_BARRA_1}; 
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
-        /* Adicione a variável do azul do JARVIS aqui se preferir centralizar tudo */
         --cor-jarvis-brilho: #00d4ff; 
+        --largura-maxima-msgs: 95%; 
         /* ##################################################### */
     }}
 
-    @import url('https://fonts.googleapis.com');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
     
-    /* ########## NOVO: ESTILO E BRILHO DO TÍTULO JARVIS (MAIOR E PULSANTE) ########## */
+    /* ########## CABEÇALHO J.A.R.V.I.S. (60FPS NEON) ########## */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
-        font-size: 40px !important; /* Aumentado para 40px */
+        font-size: 45px !important; 
         color: var(--cor-jarvis-brilho); 
         text-align: center; 
-        animation: jarvis-pulse 3s infinite alternate ease-in-out;
+        /* Animação linear rápida para simular 60fps */
+        animation: jarvis-pulse 1.5s infinite alternate linear;
         margin-top: 50px; 
+        letter-spacing: 8px;
+        font-weight: 700;
     }}
 
     @keyframes jarvis-pulse {{
-        0% {{ text-shadow: 0 0 8px var(--cor-jarvis-brilho)AA, 0 0 20px var(--cor-jarvis-brilho)77; }}
-        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 40px var(--cor-jarvis-brilho)99; }}
+        0% {{ 
+            text-shadow: 0 0 5px var(--cor-jarvis-brilho)88, 0 0 10px var(--cor-jarvis-brilho)44; 
+            opacity: 0.85;
+        }}
+        100% {{ 
+            text-shadow: 0 0 20px var(--cor-jarvis-brilho), 0 0 40px var(--cor-jarvis-brilho)AA, 0 0 60px var(--cor-jarvis-brilho)55; 
+            opacity: 1;
+        }}
     }}
-    /* ############################################################################## */
+    /* ######################################################### */
 
+    /* CAIXAS DE DIÁLOGO AMPLIADAS */
+    .jarvis-final-box, .jarvis-thinking-glow {{ 
+        border: 1px solid rgba(0, 212, 255, 0.2); 
+        border-radius: 0 15px 15px 15px; 
+        padding: 15px; 
+        background: rgba(255, 255, 255, 0.05); 
+        margin-top: 5px;
+        max-width: var(--largura-maxima-msgs) !important;
+    }}
 
-    /* 1. OVERLAY DE FUNDO */
+    .jarvis-thinking-glow {{
+        border: 2px solid #ff8c00;
+        box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);
+    }}
+
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ 
+        margin-left: auto !important; 
+        width: fit-content !important; 
+        max-width: var(--largura-maxima-msgs) !important; 
+        background: rgba(0, 212, 255, 0.1) !important; 
+        border: 1px solid rgba(0, 212, 255, 0.3); 
+        border-radius: 15px 15px 0 15px !important; 
+    }}
+
+    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
+
+    /* OVERLAY DE FUNDO REATIVO AO FOCO */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
         background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
-    /* 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) */
+    /* ESTRUTURA DO CHAT INPUT */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
         width: 100vw !important; 
         left: 0px !important; 
         z-index: 1000 !important;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         padding: 10px 0px 30px 0px !important; 
         background: #0e1117; 
+        transition: transform 0.3s ease !important;
     }}
 
     [data-testid="stChatInput"] textarea {{
         background: rgba(22, 27, 34, 0.8) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 12px !important;
-        transition: all 0.3s ease !important;
         padding: 12px !important;
-        width: 100% !important; 
     }}
 
     [data-testid="stChatInput"]:focus-within {{
-        transform: translateY(-20px) !important; 
+        transform: translateY(-10px) !important; 
     }}
 
     [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important; 
-        overflow: hidden; /* Mantém a barra de brilho confinada à borda */
+        overflow: hidden;
         margin: 0 20px; 
-        border: 1px solid transparent; /* Remove a borda anterior para evitar conflito */
+        border: 1px solid transparent;
     }}
 
-    /* ########## ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO ########## */
+    /* BARRA RGB DESLIZANTE */
     [data-testid="stChatInput"] > div::before {{
         content: "";
         position: absolute;
-        top: 0; /* Posiciona no topo exato */
+        top: 0; 
         left: 0;
         width: 100%;
-        height: 2px; /* Espessura da barra */
-        /* Gradiente linear que desliza */
+        height: 2px;
         background: linear-gradient(
             to right, 
             transparent, 
@@ -117,23 +148,22 @@ st.markdown(f"""
             var(--cor-barra-fim),
             transparent
         );
-        /* Inicia fora da tela (-100%) e desliza 200% para a direita */
         transform: translateX(-100%); 
         animation: slide-right 2s linear infinite;
-        opacity: 0; /* Invisível por padrão */
+        opacity: 0;
         transition: opacity 0.3s ease;
     }}
 
     [data-testid="stChatInput"]:focus-within > div::before {{
-        opacity: 1; /* Aparece ao focar */
+        opacity: 1; 
     }}
 
     @keyframes slide-right {{
         0% {{ transform: translateX(-100%); }}
         100% {{ transform: translateX(100%); }}
     }}
-    /* ###################################################################### */
 
+    /* LIMPEZA DE BORDAS DO INPUT */
     [data-testid="stChatInput"] textarea:focus {{
         box-shadow: none !important;
         border-color: transparent !important;
