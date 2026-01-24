@@ -84,7 +84,6 @@ st.markdown(f"""
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         padding: 10px 0px 30px 0px !important; 
         background: #0e1117; 
-        height: 60px; /* altura fixa para a barra de input */
     }}
 
     [data-testid="stChatInput"] textarea {{
@@ -94,7 +93,6 @@ st.markdown(f"""
         transition: all 0.3s ease !important;
         padding: 12px !important;
         width: 100% !important; 
-        height: 40px; /* altura fixa para a área de texto */
     }}
 
     [data-testid="stChatInput"]:focus-within {{
@@ -425,4 +423,3 @@ REGRAS IMUTÁVEIS:
                     "Era isso! O que mais posso ajudar?"
                 ]
                 response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
-            
