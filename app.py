@@ -79,7 +79,7 @@ st.markdown(f"""
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
-        width: 100vw !important; /* largura total */
+        width: 200vw !important; /* largura total */
         left: 0px !important; 
         z-index: 1000 !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
