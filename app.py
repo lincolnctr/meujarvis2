@@ -424,4 +424,10 @@ REGRAS IMUTÁVEIS:
                     "Espero que isso não tenha sido muito confuso, senão é só perguntar novamente, ok?",
                     "Era isso! O que mais posso ajudar?"
                 ]
-                response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_h
+                response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
+
+            titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
+            salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+
+    st.session_state.is_thinking = False
+    st.session_state.processed_prompt = None
