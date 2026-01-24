@@ -102,13 +102,16 @@ st.markdown(f"""
         transform: translateY(-20px) !important; 
     }}
 
-    [data-testid="stChatInput"] > div {{
+        [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important; 
         overflow: hidden; 
-        margin: 0 20px; /* padding lateral para o texto */
+        margin: 0 5% !important; /* Aumenta a largura usando margens de apenas 5% */
+        width: 90% !important;   /* Força a caixa a ocupar 90% da largura da tela */
+        max-width: 1200px;       /* Impede que fique exagerada em monitores gigantes */
         border: 1px solid transparent; 
     }}
+
 
     /* ########## animação da barra deslizante no topo ########## */
     [data-testid="stChatInput"] > div::before {{
