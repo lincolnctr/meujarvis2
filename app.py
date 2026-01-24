@@ -69,7 +69,7 @@ st.markdown(f"""
     }}
 
     .jarvis-final-box {{ 
-        border: 1px solid rgba(0, 212, 255, 0.2); 
+        border: 1px solid rgba(0, 212, 255, 0.05); 
         border-radius: 0 15px 15px 15px; 
         padding: 15px; 
         background: rgba(255, 255, 255, 0.05); 
