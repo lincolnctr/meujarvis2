@@ -5,6 +5,10 @@ import json
 import uuid
 import base64
 import random
+import streamlit as st
+
+st.set_page_config(layout="wide") # Adicione esta linha aqui
+
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
