@@ -29,13 +29,11 @@ st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide"
 st.markdown(f"""
     <style>
     :root {{
-        /* ########## VARIAVEIS CSS PARA PERSONALIZAR ########## */
         --cor-barra-inicio: {COR_BARRA_1}; 
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
         --cor-jarvis-brilho: #00d4ff; 
         --largura-maxima-msgs: 95%; 
-        /* ##################################################### */
     }}
 
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
@@ -43,36 +41,39 @@ st.markdown(f"""
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
     
-    /* ########## CABEÇALHO J.A.R.V.I.S. (60FPS NEON) ########## */
+    /* ########## CABEÇALHO J.A.R.V.I.S. (BRILHO PULSANTE ESTÁTICO) ########## */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
         font-size: 45px !important; 
         color: var(--cor-jarvis-brilho); 
         text-align: center; 
-        animation: jarvis-pulse 1.5s infinite alternate linear;
+        /* Animação focada apenas no brilho */
+        animation: jarvis-glow-only 2s infinite alternate ease-in-out;
         margin-top: 50px; 
         letter-spacing: 8px;
         font-weight: 700;
         text-transform: uppercase;
     }}
 
-    /* ########## ANIMAÇÃO DE ALTA POTÊNCIA ########## */
-    @keyframes jarvis-pulse {{
+    /* ########## ANIMAÇÃO: APENAS O BRILHO PULSA, LETRAS FIXAS ########## */
+    @keyframes jarvis-glow-only {{
         0% {{ 
-            text-shadow: 0 0 10px var(--cor-jarvis-brilho), 0 0 20px var(--cor-jarvis-brilho)88; 
-            opacity: 0.8;
+            text-shadow: 
+                0 0 10px var(--cor-jarvis-brilho)88, 
+                0 0 20px var(--cor-jarvis-brilho)44; 
+            opacity: 0.9;
         }}
         100% {{ 
             text-shadow: 
-                0 0 10px var(--cor-jarvis-brilho),      
-                0 0 25px var(--cor-jarvis-brilho),      
-                0 0 45px var(--cor-jarvis-brilho)AA,    
-                0 0 70px var(--cor-jarvis-brilho)88,    
-                0 0 100px var(--cor-jarvis-brilho)44;   
+                0 0 15px var(--cor-jarvis-brilho),      
+                0 0 30px var(--cor-jarvis-brilho)AA,    
+                0 0 50px var(--cor-jarvis-brilho)88,    
+                0 0 80px var(--cor-jarvis-brilho)44;   
             opacity: 1;
-            transform: scale(1.02);
+            /* transform: scale removido para evitar movimento das letras */
         }}
     }}
+    /* ################################################################## */
 
     /* CAIXAS DE DIÁLOGO AMPLIADAS */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
@@ -82,11 +83,6 @@ st.markdown(f"""
         background: rgba(255, 255, 255, 0.05); 
         margin-top: 5px;
         max-width: var(--largura-maxima-msgs) !important;
-    }}
-
-    .jarvis-thinking-glow {{
-        border: 2px solid #ff8c00;
-        box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);
     }}
 
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ 
@@ -100,12 +96,6 @@ st.markdown(f"""
 
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* OVERLAY DE FUNDO REATIVO AO FOCO */
-    .stApp:has([data-testid="stChatInput"] textarea:focus) {{
-        background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
-        transition: background 0.5s ease;
-    }}
-
     /* ESTRUTURA DO CHAT INPUT */
     [data-testid="stChatInput"] {{
         position: fixed !important;
@@ -115,18 +105,6 @@ st.markdown(f"""
         z-index: 1000 !important;
         padding: 10px 0px 30px 0px !important; 
         background: #0e1117; 
-        transition: transform 0.3s ease !important;
-    }}
-
-    [data-testid="stChatInput"] textarea {{
-        background: rgba(22, 27, 34, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        padding: 12px !important;
-    }}
-
-    [data-testid="stChatInput"]:focus-within {{
-        transform: translateY(-10px) !important; 
     }}
 
     [data-testid="stChatInput"] > div {{
