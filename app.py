@@ -27,7 +27,7 @@ COR_BARRA_3 = "#ff4500"
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
 
-# CSS com todas as animações e o novo estilo futurista/cyber
+# CSS com animações integradas e imagem de fundo para os circuitos
 st.markdown(f"""
     <style>
     :root {{
@@ -36,7 +36,6 @@ st.markdown(f"""
         --cor-barra-fim: {COR_BARRA_3};
         --bg-input: #161b22;
         --cor-jarvis-brilho: {COR_JARVIS}; /* Azul do J.A.R.V.I.S. */
-        --cor-circuito: #ff8c00; /* Laranja para os circuitos */
     }}
 
     @import url('https://fonts.googleapis.com');
@@ -46,18 +45,26 @@ st.markdown(f"""
         background-color: #0e1117; 
         color: #e0e0e0; 
         padding-bottom: 120px;
-        position: relative; /* Necessário para posicionar os circuitos */
-        overflow: hidden; /* Garante que os circuitos não passem da tela */
+        position: relative; 
+        /* ########## NOVO: IMAGEM DE FUNDO COM CIRCUITO ########## */
+        /* Usei um exemplo de URL, você pode substituir por outra imagem se quiser */
+        background-image: url('https://i.postimg.cc'); 
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-attachment: fixed;
+        /* Adiciona um overlay escuro por cima da imagem para o minimalismo */
+        background-blend-mode: overlay; 
     }}
     
     /* ########## ESTILO E BRILHO DO TÍTULO JARVIS (MAIOR E PULSANTE) ########## */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
-        font-size: 40px !important; /* Aumentado para 40px */
+        font-size: 40px !important; 
         color: var(--cor-jarvis-brilho); 
         text-align: center; 
         animation: jarvis-pulse 3s infinite alternate ease-in-out;
-        margin-top: 50px; /* Desce o título um pouco mais */
+        margin-top: 50px; 
     }}
 
     @keyframes jarvis-pulse {{
@@ -66,32 +73,10 @@ st.markdown(f"""
     }}
     /* ######################################################################## */
 
-    /* ########## NOVO: CIRCUITOS TECNOLÓGICOS LARANJAS (DECORAÇÃO) ########## */
-    /* Posicionados aleatoriamente no fundo */
-    .circuit {{
-        position: absolute;
-        opacity: 0.1;
-        background-color: var(--cor-circuito);
-        animation: circuit-glow 4s infinite alternate ease-in-out;
-    }}
-    .circuit-line {{
-        width: 1px;
-        height: 100px;
-    }}
-    .circuit-dot {{
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-    }}
-
-    @keyframes circuit-glow {{
-        0% {{ opacity: 0.05; }}
-        100% {{ opacity: 0.2; }}
-    }}
-    /* ###################################################################### */
-
     /* [MANTIDO] 1. OVERLAY DE FUNDO */
-    .stApp:has([data-testid="stChatInput"] textarea:focus) {{ background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important; transition: background 0.5s ease; }}
+    /* Ajustado para não conflitar com a nova imagem de fundo */
+    .stApp:has([data-testid="stChatInput"] textarea:focus) {{ background: #0e1117 !important; transition: background 0.5s ease; }}
+
     /* [MANTIDO] 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) */
     [data-testid="stChatInput"] {{ position: fixed !important; bottom: 0px !important; width: 100vw !important; left: 0px !important; z-index: 1000 !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; padding: 10px 0px 30px 0px !important; background: #0e1117; }}
     [data-testid="stChatInput"] textarea {{ background: rgba(22, 27, 34, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 12px !important; transition: all 0.3s ease !important; padding: 12px !important; width: 100% !important; }}
@@ -99,11 +84,7 @@ st.markdown(f"""
     [data-testid="stChatInput"] > div {{ position: relative; border-radius: 14px !important; overflow: hidden; margin: 0 20px; border: 1px solid transparent; }}
 
     /* [MANTIDO] ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO (LARANJA) */
-    [data-testid="stChatInput"] > div::before {{
-        content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-        background: linear-gradient(to right, transparent, var(--cor-barra-inicio), var(--cor-barra-meio), var(--cor-barra-fim), transparent);
-        transform: translateX(-100%); animation: slide-right 2s linear infinite; opacity: 0; transition: opacity 0.3s ease;
-    }}
+    [data-testid="stChatInput"] > div::before {{ content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(to right, transparent, var(--cor-barra-inicio), var(--cor-barra-meio), var(--cor-barra-fim), transparent); transform: translateX(-100%); animation: slide-right 2s linear infinite; opacity: 0; transition: opacity 0.3s ease; }}
     [data-testid="stChatInput"]:focus-within > div::before {{ opacity: 1; }}
     @keyframes slide-right {{ 0% {{ transform: translateX(-100%); }} 100% {{ transform: translateX(100%); }} }}
     
@@ -114,16 +95,6 @@ st.markdown(f"""
     [data-testid="stChatInput"] textarea:focus {{ box-shadow: none !important; border-color: transparent !important; }}
     </style>
 """, unsafe_allow_html=True)
-
-# ########## NOVO: ADICIONA ELEMENTOS DE CIRCUITO NO LAYOUT ##########
-# Adiciona as linhas e pontos de circuito ao fundo da tela
-st.markdown('<div class="circuit circuit-line" style="top: 10%; left: 20%; transform: rotate(45deg);"></div>', unsafe_allow_html=True)
-st.markdown('<div class="circuit circuit-dot" style="top: 15%; left: 20%;"></div>', unsafe_allow_html=True)
-st.markdown('<div class="circuit circuit-line" style="top: 30%; right: 15%; transform: rotate(90deg);"></div>', unsafe_allow_html=True)
-st.markdown('<div class="circuit circuit-dot" style="top: 35%; right: 15%;"></div>', unsafe_allow_html=True)
-st.markdown('<div class="circuit circuit-line" style="bottom: 30%; left: 10%; transform: rotate(120deg);"></div>', unsafe_allow_html=True)
-st.markdown('<div class="circuit circuit-dot" style="bottom: 35%; left: 10%;"></div>', unsafe_allow_html=True)
-# ##################################################################
 
 
 # ... [O restante do código permanece idêntico ao enviado por você] ...
