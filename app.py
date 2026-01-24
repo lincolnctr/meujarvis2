@@ -26,18 +26,15 @@ COR_BARRA_3 = "#ff4500"
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
+
 st.markdown(f"""
     <style>
     :root {{
+        /* ########## VARIAVEIS CSS PARA PERSONALIZAR ########## */
         --cor-barra-inicio: {COR_BARRA_1}; 
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
-        --bg-input: #161b22;
-        --cor-jarvis-brilho: {COR_JARVIS};
-        
-        /* ########## PERSONALIZAÇÃO DE LARGURA ########## */
-        --largura-maxima-msgs: 80%; /* Altere aqui para expandir/recuar */
-        /* ############################################### */
+        /* ##################################################### */
     }}
 
     @import url('https://fonts.googleapis.com');
