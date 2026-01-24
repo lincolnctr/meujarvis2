@@ -26,7 +26,6 @@ COR_BARRA_3 = "#ff4500"
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-
 st.markdown(f"""
     <style>
     :root {{
@@ -50,19 +49,17 @@ st.markdown(f"""
         font-size: 45px !important; 
         color: var(--cor-jarvis-brilho); 
         text-align: center; 
-        /* Animação linear rápida para simular 60fps */
         animation: jarvis-pulse 1.5s infinite alternate linear;
         margin-top: 50px; 
         letter-spacing: 8px;
         font-weight: 700;
+        text-transform: uppercase;
     }}
 
-    /* ########## ANIMAÇÃO DE ALTA POTÊNCIA (CORRIGIDA) ########## */
+    /* ########## ANIMAÇÃO DE ALTA POTÊNCIA ########## */
     @keyframes jarvis-pulse {{
         0% {{ 
-            text-shadow: 
-                0 0 10px var(--cor-jarvis-brilho), 
-                0 0 20px var(--cor-jarvis-brilho)88; 
+            text-shadow: 0 0 10px var(--cor-jarvis-brilho), 0 0 20px var(--cor-jarvis-brilho)88; 
             opacity: 0.8;
         }}
         100% {{ 
@@ -76,7 +73,6 @@ st.markdown(f"""
             transform: scale(1.02);
         }}
     }}
-    /* ######################################################### */
 
     /* CAIXAS DE DIÁLOGO AMPLIADAS */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
@@ -137,87 +133,6 @@ st.markdown(f"""
         position: relative;
         border-radius: 14px !important; 
         overflow: hidden;
-st.markdown(f"""
-    <style>
-    :root {{
-        --cor-barra-inicio: {COR_BARRA_1}; 
-        --cor-barra-meio: {COR_BARRA_2};
-        --cor-barra-fim: {COR_BARRA_3};
-        --cor-jarvis-brilho: #00d4ff; 
-        --largura-maxima-msgs: 95%; 
-    }}
-
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
-
-    html {{ scroll-behavior: smooth !important; }}
-    .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
-    
-    /* CABEÇALHO COM BRILHO DE ALTA POTÊNCIA 60FPS */
-    .jarvis-header {{ 
-        font-family: 'Orbitron', sans-serif !important; 
-        font-size: 45px !important; 
-        color: var(--cor-jarvis-brilho); 
-        text-align: center; 
-        animation: jarvis-pulse 1.5s infinite alternate linear;
-        margin-top: 50px; 
-        letter-spacing: 8px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }}
-
-    @keyframes jarvis-pulse {{
-        0% {{ 
-            text-shadow: 0 0 10px var(--cor-jarvis-brilho), 0 0 20px var(--cor-jarvis-brilho)88; 
-            opacity: 0.8;
-        }}
-        100% {{ 
-            text-shadow: 
-                0 0 10px var(--cor-jarvis-brilho),      
-                0 0 25px var(--cor-jarvis-brilho),      
-                0 0 45px var(--cor-jarvis-brilho)AA,    
-                0 0 70px var(--cor-jarvis-brilho)88,    
-                0 0 100px var(--cor-jarvis-brilho)44;   
-            opacity: 1;
-            transform: scale(1.02);
-        }}
-    }}
-
-    /* CAIXAS DE MENSAGENS AMPLIADAS */
-    .jarvis-final-box, .jarvis-thinking-glow {{ 
-        border: 1px solid rgba(0, 212, 255, 0.2); 
-        border-radius: 0 15px 15px 15px; 
-        padding: 15px; 
-        background: rgba(255, 255, 255, 0.05); 
-        margin-top: 5px;
-        max-width: var(--largura-maxima-msgs) !important;
-    }}
-
-    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ 
-        margin-left: auto !important; 
-        width: fit-content !important; 
-        max-width: var(--largura-maxima-msgs) !important; 
-        background: rgba(0, 212, 255, 0.1) !important; 
-        border: 1px solid rgba(0, 212, 255, 0.3); 
-        border-radius: 15px 15px 0 15px !important; 
-    }}
-
-    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-
-    /* INPUT E BARRA RGB */
-    [data-testid="stChatInput"] {{
-        position: fixed !important;
-        bottom: 0px !important; 
-        width: 100vw !important; 
-        left: 0px !important; 
-        z-index: 1000 !important;
-        padding: 10px 0px 30px 0px !important; 
-        background: #0e1117; 
-    }}
-
-    [data-testid="stChatInput"] > div {{
-        position: relative;
-        border-radius: 14px !important; 
-        overflow: hidden;
         margin: 0 20px; 
         border: 1px solid transparent;
     }}
@@ -246,8 +161,6 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
-
-# ... [O restante do código permanece idêntico ao enviado por você] ...
 
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
