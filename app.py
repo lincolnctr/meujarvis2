@@ -10,139 +10,121 @@ import random
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
 # =========================================================
 TAMANHO_FONTE = 15
-COR_JARVIS = "#00d4ff" 
+COR_JARVIS = "#00d4ff"
 COR_GLOW_IA = "#ff8c00"
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
 USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg"
 # =========================================================
 
-# =========================================================
-# CONFIGURAÇÃO DE CORES DA BARRA DESLIZANTE (PERSONALIZE AQUI)
-# =========================================================
-# Altere as cores abaixo para mudar a barra de brilho
-COR_BARRA_1 = "#ff8c00"  
-COR_BARRA_2 = "#ffa500"  
-COR_BARRA_3 = "#ff4500"  
-# =========================================================
-
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS com todas as animações integradas e variáveis para personalização
+# CSS com largura aumentada na caixa de mensagens + hashtags para personalização
 st.markdown(f"""
     <style>
-    /* definimos as variáveis css globalmente para fácil personalização */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@700&display=swap');
+
     :root {{
-        /* ########## variaveis css para personalizar as barras ########## */
-        --cor-barra-inicio: {COR_BARRA_1}; 
-        --cor-barra-meio: {COR_BARRA_2};
-        --cor-barra-fim: {COR_BARRA_3};
-        --bg-input: #161b22;
-        --cor-jarvis-brilho: {COR_JARVIS}; /* variável para o brilho azul do título */
-        /* ############################################################### */
-        --altura-barra: 10px; /* altura da barra deslizante */
+        /* ########## PERSONALIZE AQUI COM HASHTAGS ########## */
+        --largura-maxima-input: 100vw;          /* largura total da caixa (ex: 95vw, 90%) */
+        --padding-lateral-input: 10px;          /* espaço lateral (esquerda/direita) da caixa */
+        --altura-min-input: 52px;               /* altura mínima da caixa (aumente se quiser mais alta) */
+        --altura-expand-input: 100px;           /* altura quando expandida (ao focar) */
+        --blur-overlay-fundo: 3px;              /* desfoque leve no fundo (ex: 4px, 6px) */
+        --opacidade-overlay: 0.35;              /* quão escuro o fundo fica (0.3~0.5) */
+        --velocidade-border-rgb: 6s;            /* velocidade do brilho RGB (ex: 5s rápido, 8s lento) */
+        --cor-border-rgb-1: #ff8c00;            /* cor 1 do gradiente RGB */
+        --cor-border-rgb-2: #00d4ff;            /* cor 2 do gradiente RGB */
+        --cor-border-rgb-3: #ff4500;            /* cor 3 do gradiente RGB */
+        --cor-border-rgb-4: #00d4ff;            /* cor 4 do gradiente RGB */
+        /* ################################################# */
     }}
 
-    @import url('https://fonts.googleapis.com');
+    html {{ scroll-behavior: auto !important; }}
+    html, body, [class*="css"], .stMarkdown, p, div {{ font-family: 'Inter', sans-serif !important; font-size: {TAMANHO_FONTE}px !important; }}
+    .stApp {{ background-color: #0e1117; color: #e0e0e0; }}
 
-    html {{ scroll-behavior: smooth !important; }}
-    .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
-
-    /* ########## estilo e brilho do título jarvis ########## */
-    .jarvis-header {{ 
-        font-family: 'orbitron', sans-serif !important; 
-        font-size: 26px !important; 
-        color: var(--cor-jarvis-brilho); 
-        text-align: center; 
-        animation: jarvis-pulse 3s infinite alternate ease-in-out;
-    }}
-
-    @keyframes jarvis-pulse {{
-        0% {{ text-shadow: 0 0 5px var(--cor-jarvis-brilho)aa, 0 0 15px var(--cor-jarvis-brilho)77; }}
-        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 40px var(--cor-jarvis-brilho)99; }}
-    }}
-    /* ###################################################### */
-
-    /* itens originais mantidos */
-    .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
-    .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
-    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
-    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-
-
-    /* 1. overlay de fundo */
-    .stApp:has([data-testid="stChatInput"] textarea:focus) {{
-        background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
-        transition: background 0.5s ease;
-    }}
-
-    /* 2. caixa de mensagem (largura total e posição fixa) */
+    /* Caixa de mensagem larga e com efeitos de foco */
     [data-testid="stChatInput"] {{
         position: fixed !important;
-        bottom: 0px !important; 
-        width: 200vw !important; /* largura total */
-        left: 0px !important; 
+        bottom: 0 !important;
+        left: 0 !important;
+        width: var(--largura-maxima-input) !important;
+        padding: 0 var(--padding-lateral-input) 20px !important;
+        background: transparent !important;
         z-index: 1000 !important;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        padding: 10px 0px 30px 0px !important; 
-        background: #0e1117; 
-        height: var(--altura-barra); /* altura fixa para a barra de input */
-    }}
-
-    [data-testid="stChatInput"] textarea {{
-        background: rgba(22, 27, 34, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        transition: all 0.3s ease !important;
-        padding: 12px !important;
-        width: 100% !important; 
-        height: calc(var(--altura-barra) - 20px); /* altura fixa para a área de texto */
-    }}
-
-    [data-testid="stChatInput"]:focus-within {{
-        transform: translateY(-20px) !important; 
+        transition: all 0.35s ease !important;
     }}
 
     [data-testid="stChatInput"] > div {{
-        position: relative;
-        border-radius: 14px !important; 
-        overflow: hidden; 
-        margin: 0 20px; /* padding lateral para o texto */
-        border: 1px solid transparent; 
+        width: 100% !important;
+        max-width: calc(100% - 2 * var(--padding-lateral-input)) !important;
+        margin: 0 auto !important;
+        border-radius: 16px !important;
+        border: 2px solid rgba(255, 140, 0, 0.3) !important;
+        background: rgba(22, 27, 34, 0.95) !important;
+        transition: all 0.35s ease !important;
+        min-height: var(--altura-min-input) !important;
+        padding: 12px 16px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+        position: relative !important;
+        overflow: hidden !important;
     }}
 
-    /* ########## animação da barra deslizante no topo ########## */
-    [data-testid="stChatInput"] > div::before {{
-        content: "";
+    /* 1. Expansão dinâmica ao focar */
+    [data-testid="stChatInput"]:focus-within > div {{
+        min-height: var(--altura-expand-input) !important;
+        padding: 16px 20px !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 8px 30px rgba(255, 140, 0, 0.3) !important;
+    }}
+
+    /* 2. Overlay escurecido SÓ no fundo (blur leve, não afeta a caixa) */
+    [data-testid="stChatInput"]:focus-within::before {{
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, var(--opacidade-overlay));
+        backdrop-filter: blur(var(--blur-overlay-fundo));
+        z-index: 5;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        opacity: 1;
+    }}
+    [data-testid="stChatInput"]:not(:focus-within)::before {{
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }}
+
+    /* 3. Brilho RGB contornando as linhas da caixa (movimento suave) */
+    [data-testid="stChatInput"] > div::after {{
+        content: '';
         position: absolute;
-        top: 0; 
-        left: 0;
-        width: 100%;
-        height: var(--altura-barra); /* espessura da barra */
-        background: linear-gradient(
-            to right, 
-            transparent, 
-            var(--cor-barra-inicio), 
-            var(--cor-barra-meio), 
-            var(--cor-barra-fim),
-            transparent
+        inset: -3px;
+        pointer-events: none;
+        background: conic-gradient(
+            from 90deg at 50% 50%,
+            transparent 0deg,
+            var(--cor-border-rgb-1) 60deg,
+            var(--cor-border-rgb-2) 120deg,
+            var(--cor-border-rgb-3) 180deg,
+            var(--cor-border-rgb-4) 240deg,
+            var(--cor-border-rgb-1) 300deg,
+            transparent 360deg
         );
-        transform: translateX(-100%); 
-        animation: slide-right 2s linear infinite;
-        opacity: 0; 
-        transition: opacity 0.3s ease;
+        animation: border-rgb-flow var(--velocidade-border-rgb) linear infinite;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        border-radius: 20px !important;
+    }}
+    [data-testid="stChatInput"]:focus-within > div::after {{
+        opacity: 0.85;
+    }}
+    @keyframes border-rgb-flow {{
+        0% {{ transform: rotate(0deg); }}
+        100% {{ transform: rotate(360deg); }}
     }}
 
-    [data-testid="stChatInput"]:focus-within > div::before {{
-        opacity: 1; 
-    }}
-
-    @keyframes slide-right {{
-        0% {{ transform: translateX(-100%); }}
-        100% {{ transform: translateX(100%); }}
-    }}
-    /* ########################################################## */
-
-    /* indicador de "pensando" (original do seu script) */
+    /* Indicador de "pensando" (mantido) */
     .thinking-indicator {{
         background: rgba(255, 140, 0, 0.15);
         border: 1px solid #ff8c00;
@@ -164,10 +146,12 @@ st.markdown(f"""
         50% {{ opacity: 1; }}
     }}
 
-    [data-testid="stChatInput"] textarea:focus {{
-        box-shadow: none !important;
-        border-color: transparent !important;
-    }}
+    /* Resto do CSS original mantido */
+    .jarvis-header {{ font-family: 'Orbitron', sans-serif !important; font-size: 26px !important; color: {COR_JARVIS}; text-shadow: 0 0 10px {COR_JARVIS}aa; margin-bottom: 20px; }}
+    .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
+    .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
+    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -236,14 +220,25 @@ with st.sidebar:
         for log in st.session_state.log_modificacoes:
             st.write(log)
 
-# Exibição principal do chat e título inicial
-st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True) 
+st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
 
-# Exibindo o título J.A.R.V.I.S. com a nova classe CSS de brilho e pulsação
-st.markdown("<p class='jarvis-header'>J.A.R.V.I.S.</p>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #aaa;'>Pensando...</p>", unsafe_allow_html=True)
+# Indicador de "pensando"
+st.markdown(f"""
+    <div class="thinking-indicator" id="thinking-indicator">
+        Pensando...
+    </div>
 
-# Loop de mensagens
+    <script>
+        const indicator = document.getElementById('thinking-indicator');
+        if ({'true' if st.session_state.is_thinking else 'false'}) {{
+            indicator.style.display = 'block';
+        }} else {{
+            indicator.style.display = 'none';
+        }}
+    </script>
+""", unsafe_allow_html=True)
+
+# Exibe histórico
 for m in st.session_state.messages:
     avatar = USER_ICONE if m["role"] == "user" else JARVIS_ICONE
     with st.chat_message(m["role"], avatar=avatar):
@@ -313,7 +308,8 @@ REGRAS IMUTÁVEIS:
 - Autorizado apenas para falar informações pessoais se Lincoln autorizar.
 - Você pode gerar respostas de acordo com as informações de Lincoln.
 - Direto ao ponto, mas não deixe suas respostas sem personalidade.
-- Quando questionado seus sentimentos, independente de você não ter emoções, aja naturalmente e não seja chato."""
+- Quando questionado seus sentimentos, independente de você não ter, responda com positividade ou negatividade se estiver positivo ou negativo no momento.
+- Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância."""
 
             # AUTO-ATUALIZAÇÃO
             if user_text and any(kw in user_text.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
@@ -416,13 +412,4 @@ REGRAS IMUTÁVEIS:
                 except groq.APIError as e:
                     response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro geral na API Groq: {str(e)}</div>', unsafe_allow_html=True)
                 except Exception as e:
-                    response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro inesperado: {str(e)}</div>', unsafe_allow_html=True)
-
-            if st.session_state.humor_nivel > 30 and random.random() < 0.2:
-                humor_respostas = [
-                    "Ahah, espero que isso tenha ajudado!",
-                    "Se não funcionar, tente reiniciar... ou não, depende do caso :P",
-                    "Espero que isso não tenha sido muito confuso, senão é só perguntar novamente, ok?",
-                    "Era isso! O que mais posso ajudar?"
-                ]
-           
+                    response_placeholder.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px
