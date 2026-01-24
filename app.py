@@ -57,27 +57,25 @@ st.markdown(f"""
         font-weight: 700;
     }}
 
-    @keyframes jarvis-pulse {
-        0% { 
-            /* Brilho base suave */
+    /* ########## ANIMAÇÃO DE ALTA POTÊNCIA (CORRIGIDA) ########## */
+    @keyframes jarvis-pulse {{
+        0% {{ 
             text-shadow: 
                 0 0 10px var(--cor-jarvis-brilho), 
                 0 0 20px var(--cor-jarvis-brilho)88; 
             opacity: 0.8;
-        }
-        100% { 
-            /* Brilho de Sobrecarga - Múltiplas camadas para intensidade máxima */
+        }}
+        100% {{ 
             text-shadow: 
-                0 0 10px var(--cor-jarvis-brilho),      /* Núcleo */
-                0 0 25px var(--cor-jarvis-brilho),      /* Glow médio */
-                0 0 45px var(--cor-jarvis-brilho)AA,    /* Aura externa */
-                0 0 70px var(--cor-jarvis-brilho)88,    /* Bloom distante */
-                0 0 100px var(--cor-jarvis-brilho)44;   /* Iluminação do ambiente */
+                0 0 10px var(--cor-jarvis-brilho),      
+                0 0 25px var(--cor-jarvis-brilho),      
+                0 0 45px var(--cor-jarvis-brilho)AA,    
+                0 0 70px var(--cor-jarvis-brilho)88,    
+                0 0 100px var(--cor-jarvis-brilho)44;   
             opacity: 1;
-            /* Leve aumento na escala para dar profundidade (opcional) */
             transform: scale(1.02);
-        }
-    }
+        }}
+    }}
     /* ######################################################### */
 
     /* CAIXAS DE DIÁLOGO AMPLIADAS */
