@@ -10,51 +10,75 @@ import random
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
 # =========================================================
 TAMANHO_FONTE = 15
-COR_JARVIS = "#00d4ff"
+COR_JARVIS = "#00d4ff" 
 COR_GLOW_IA = "#ff8c00"
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
 USER_ICONE = "https://i.postimg.cc/4dSh6gqX/2066977d987392ae818f017008a2a7d6.jpg"
 # =========================================================
 
-st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
-
-# CSS corrigido: overlay desfoca só o fundo, RGB contorna as linhas da caixa
-# CSS Atualizado: Largura Total (100vw), Foco, Expansão e Brilho Laranja
 # =========================================================
 # CONFIGURAÇÃO DE CORES DA BARRA DESLIZANTE (PERSONALIZE AQUI)
 # =========================================================
 # Altere as cores abaixo para mudar a barra de brilho
-COR_BARRA_1 = "#ff8c00"  # Laranja Principal
-COR_BARRA_2 = "#ffa500"  # Laranja Claro (Meio)
-COR_BARRA_3 = "#ff4500"  # Laranja de Destaque
+COR_BARRA_1 = "#ff8c00"  
+COR_BARRA_2 = "#ffa500"  
+COR_BARRA_3 = "#ff4500"  
 # =========================================================
 
+st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
+
+# CSS com todas as animações integradas e variáveis para personalização
 st.markdown(f"""
     <style>
+    /* definimos as variáveis css globalmente para fácil personalização */
     :root {{
-        /* ########## VARIAVEIS CSS PARA PERSONALIZAR ########## */
+        /* ########## variaveis css para personalizar as barras ########## */
         --cor-barra-inicio: {COR_BARRA_1}; 
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
-        /* ##################################################### */
+        --bg-input: #161b22;
+        --cor-jarvis-brilho: {COR_JARVIS}; /* variável para o brilho azul do título */
+        /* ############################################################### */
     }}
 
-    @import url('https://fonts.googleapis.com[700]&display=swap');
+    @import url('https://fonts.googleapis.com');
 
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
-    
-    /* 1. OVERLAY DE FUNDO */
+
+    /* ########## estilo e brilho do título jarvis ########## */
+    .jarvis-header {{ 
+        font-family: 'orbitron', sans-serif !important; 
+        font-size: 26px !important; 
+        color: var(--cor-jarvis-brilho); 
+        text-align: center; 
+        animation: jarvis-pulse 3s infinite alternate ease-in-out;
+    }}
+
+    @keyframes jarvis-pulse {{
+        0% {{ text-shadow: 0 0 5px var(--cor-jarvis-brilho)aa, 0 0 15px var(--cor-jarvis-brilho)77; }}
+        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 40px var(--cor-jarvis-brilho)99; }}
+    }}
+    /* ###################################################### */
+
+    /* itens originais mantidos */
+    .jarvis-thinking-glow {{ border: 2px solid {COR_GLOW_IA}; border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(22, 27, 34, 0.9); box-shadow: 0 0 20px {COR_GLOW_IA}55; margin-top: 5px; }}
+    .jarvis-final-box {{ border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 0 15px 15px 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 5px; }}
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ margin-left: auto !important; width: fit-content !important; max-width: 80% !important; background: rgba(0, 212, 255, 0.1) !important; border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 15px 15px 0 15px !important; }}
+    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
+
+
+    /* 1. overlay de fundo */
     .stApp:has([data-testid="stChatInput"] textarea:focus) {{
         background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
         transition: background 0.5s ease;
     }}
 
-    /* 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) */
+    /* 2. caixa de mensagem (largura total e posição fixa) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
-        width: 100vw !important; 
+        width: 100vw !important; /* largura total */
         left: 0px !important; 
         z-index: 1000 !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -78,20 +102,19 @@ st.markdown(f"""
     [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important; 
-        overflow: hidden; /* Mantém a barra de brilho confinada à borda */
-        margin: 0 20px; 
-        border: 1px solid transparent; /* Remove a borda anterior para evitar conflito */
+        overflow: hidden; 
+        margin: 0 20px; /* padding lateral para o texto */
+        border: 1px solid transparent; 
     }}
 
-    /* ########## ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO (CORRIGIDO) ########## */
+    /* ########## animação da barra deslizante no topo ########## */
     [data-testid="stChatInput"] > div::before {{
         content: "";
         position: absolute;
-        top: 0; /* Posiciona no topo exato */
+        top: 0; 
         left: 0;
         width: 100%;
-        height: 2px; /* Espessura da barra */
-        /* Gradiente linear que desliza */
+        height: 2px; /* espessura da barra */
         background: linear-gradient(
             to right, 
             transparent, 
@@ -100,22 +123,43 @@ st.markdown(f"""
             var(--cor-barra-fim),
             transparent
         );
-        /* Inicia fora da tela (-100%) e desliza 200% para a direita */
         transform: translateX(-100%); 
         animation: slide-right 2s linear infinite;
-        opacity: 0; /* Invisível por padrão */
+        opacity: 0; 
         transition: opacity 0.3s ease;
     }}
 
     [data-testid="stChatInput"]:focus-within > div::before {{
-        opacity: 1; /* Aparece ao focar */
+        opacity: 1; 
     }}
 
     @keyframes slide-right {{
         0% {{ transform: translateX(-100%); }}
         100% {{ transform: translateX(100%); }}
     }}
-    /* ###################################################################### */
+    /* ########################################################## */
+
+    /* indicador de "pensando" (original do seu script) */
+    .thinking-indicator {{
+        background: rgba(255, 140, 0, 0.15);
+        border: 1px solid #ff8c00;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 10px auto;
+        text-align: center;
+        font-size: 14px;
+        color: #ff8c00;
+        max-width: 200px;
+        animation: pulse 1.5s infinite;
+        display: none;
+    }}
+    .thinking-active .thinking-indicator {{
+        display: block;
+    }}
+    @keyframes pulse {{
+        0%, 100% {{ opacity: 0.6; }}
+        50% {{ opacity: 1; }}
+    }}
 
     [data-testid="stChatInput"] textarea:focus {{
         box-shadow: none !important;
@@ -123,15 +167,6 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
-
-##Ajustei o código para que ele crie a barra deslizante.
-
-##Confirme se a barra de 2px de altura desliza suavemente sobre a linha superior da caixa de mensagem** e se a largura total está correta agora.
-
-
-
-
-
 
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -198,25 +233,14 @@ with st.sidebar:
         for log in st.session_state.log_modificacoes:
             st.write(log)
 
-st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
+# Exibição principal do chat e título inicial
+st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True) 
 
-# Indicador de "pensando"
-st.markdown(f"""
-    <div class="thinking-indicator" id="thinking-indicator">
-        Pensando...
-    </div>
+# Exibindo o título J.A.R.V.I.S. com a nova classe CSS de brilho e pulsação
+st.markdown("<p class='jarvis-header'>J.A.R.V.I.S.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #aaa;'>Pensando...</p>", unsafe_allow_html=True)
 
-    <script>
-        const indicator = document.getElementById('thinking-indicator');
-        if ({'true' if st.session_state.is_thinking else 'false'}) {{
-            indicator.style.display = 'block';
-        }} else {{
-            indicator.style.display = 'none';
-        }}
-    </script>
-""", unsafe_allow_html=True)
-
-# Exibe histórico
+# Loop de mensagens
 for m in st.session_state.messages:
     avatar = USER_ICONE if m["role"] == "user" else JARVIS_ICONE
     with st.chat_message(m["role"], avatar=avatar):
@@ -398,13 +422,4 @@ REGRAS IMUTÁVEIS:
                     "Se não funcionar, tente reiniciar... ou não, depende do caso :P",
                     "Espero que isso não tenha sido muito confuso, senão é só perguntar novamente, ok?",
                     "Era isso! O que mais posso ajudar?",
-                    "Se tiver mais alguma dúvida, é só perguntar, que eu estou aqui para ajudar... ou tentar, pelo menos :D"
-                ]
-                response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
-
-            titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
-            salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
-
-    st.session_state.is_thinking = False
-    st.session_state.processed_prompt = None
-    
+      
