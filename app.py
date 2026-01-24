@@ -169,7 +169,8 @@ st.markdown(f"""
         border-color: transparent !important;
     }}
     </style>
-""", unsafe_allow_html=True)
+""", # Exibição do título com a classe CSS que criamos
+st.markdown('<p class="jarvis-header">J.A.R.V.I.S.</p>', unsafe_allow_html=True)
 
 
 # ... [O restante do código permanece idêntico ao enviado por você] ...
