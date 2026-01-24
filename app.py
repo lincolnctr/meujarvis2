@@ -421,5 +421,7 @@ REGRAS IMUTÁVEIS:
                     "Ahah, espero que isso tenha ajudado!",
                     "Se não funcionar, tente reiniciar... ou não, depende do caso :P",
                     "Espero que isso não tenha sido muito confuso, senão é só perguntar novamente, ok?",
-                    "Era isso! O que mais posso ajudar?",
+                    "Era isso! O que mais posso ajudar?"
+                ]
+                
       
