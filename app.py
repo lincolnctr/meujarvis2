@@ -39,6 +39,7 @@ st.markdown(f"""
         --bg-input: #161b22;
         --cor-jarvis-brilho: {COR_JARVIS}; /* variável para o brilho azul do título */
         /* ############################################################### */
+        --altura-barra: 10px; /* altura da barra deslizante */
     }}
 
     @import url('https://fonts.googleapis.com');
@@ -84,7 +85,7 @@ st.markdown(f"""
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         padding: 10px 0px 30px 0px !important; 
         background: #0e1117; 
-        height: 60px; /* altura fixa para a barra de input */
+        height: var(--altura-barra); /* altura fixa para a barra de input */
     }}
 
     [data-testid="stChatInput"] textarea {{
@@ -94,7 +95,7 @@ st.markdown(f"""
         transition: all 0.3s ease !important;
         padding: 12px !important;
         width: 100% !important; 
-        height: 40px; /* altura fixa para a área de texto */
+        height: calc(var(--altura-barra) - 20px); /* altura fixa para a área de texto */
     }}
 
     [data-testid="stChatInput"]:focus-within {{
@@ -116,7 +117,7 @@ st.markdown(f"""
         top: 0; 
         left: 0;
         width: 100%;
-        height: 2px; /* espessura da barra */
+        height: var(--altura-barra); /* espessura da barra */
         background: linear-gradient(
             to right, 
             transparent, 
@@ -424,10 +425,4 @@ REGRAS IMUTÁVEIS:
                     "Espero que isso não tenha sido muito confuso, senão é só perguntar novamente, ok?",
                     "Era isso! O que mais posso ajudar?"
                 ]
-                response_placeholder.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
-
-            titulo_chat = st.session_state.messages[0]["content"][:30] + "..." if st.session_state.messages else "Protocolo Ativo"
-            salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
-
-    st.session_state.is_thinking = False
-    st.session_state.processed_prompt = None
+           
