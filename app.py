@@ -10,7 +10,7 @@ import random
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
 # =========================================================
 TAMANHO_FONTE = 15
-COR_JARVIS = "#00d4ff"
+COR_JARVIS = "#00d4ff" 
 COR_GLOW_IA = "#ff8c00"
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
 USER_ICONE = "https://i.postimg.cc/DZvSJR4g/Picsart-26-01-24-00-11-17-623.png"
@@ -26,23 +26,22 @@ COR_BARRA_3 = "#ff4500"
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-# CSS com interface futurista minimalista nas mensagens (sem mexer na caixa de input)
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
-
     :root {{
+        --cor-barra-inicio: {COR_BARRA_1}; 
+        --cor-barra-meio: {COR_BARRA_2};
+        --cor-barra-fim: {COR_BARRA_3};
         --cor-jarvis: {COR_JARVIS};
         --cor-glow-ia: {COR_GLOW_IA};
-        --bg-message: rgba(22, 27, 34, 0.75);
-        --border-message: rgba(255, 140, 0, 0.25);
-        --glow-message: 0 0 15px rgba(255, 140, 0, 0.4);
     }}
+
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
 
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
 
-    /* Caixa de input mantida exatamente como estava (não mexi) */
+    /* Caixa de input RESTAURADA exatamente como estava (sem nenhuma mudança) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
@@ -75,7 +74,7 @@ st.markdown(f"""
         border: 1px solid transparent;
     }}
 
-    /* Barra deslizante no topo da caixa (mantida) */
+    /* Barra deslizante RGB em cima da caixa (restaurada) */
     [data-testid="stChatInput"] > div::before {{
         content: "";
         position: absolute;
@@ -106,7 +105,7 @@ st.markdown(f"""
         100% {{ transform: translateX(100%); }}
     }}
 
-    /* Interface futurista minimalista nas mensagens do chat */
+    /* Interface futurista minimalista nas mensagens do histórico */
     .stChatMessage {{
         background: transparent !important;
         margin: 12px 0 !important;
@@ -119,8 +118,8 @@ st.markdown(f"""
         max-width: 80% !important;
         backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
-        border: 1px solid var(--border-message) !important;
-        box-shadow: var(--glow-message) !important;
+        border: 1px solid rgba(255, 140, 0, 0.25) !important;
+        box-shadow: 0 0 15px rgba(255, 140, 0, 0.4) !important;
         transition: all 0.3s ease !important;
     }}
 
@@ -138,7 +137,6 @@ st.markdown(f"""
         border-radius: 16px 16px 16px 4px !important;
     }}
 
-    /* Efeito de entrada nas mensagens */
     @keyframes fadeInUp {{
         from {{ opacity: 0; transform: translateY(20px); }}
         to {{ opacity: 1; transform: translateY(0); }}
@@ -174,6 +172,8 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
+# ... (resto do código permanece exatamente igual ao que você me mostrou: CHATS_DIR, session_state, funções carregar/salvar, sidebar, título, loop de mensagens, client Groq, prompt_obj, processamento completo com auto-update, humor randômico, etc.)
 
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
@@ -240,18 +240,16 @@ with st.sidebar:
         for log in st.session_state.log_modificacoes:
             st.write(log)
 
-st.markdown("<div class='jarvis-header'>J.A.R.V.I.S.</div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True) 
+st.markdown("<p class='jarvis-header'>J.A.R.V.I.S.</p>", unsafe_allow_html=True)
 
-# Exibe histórico com nova interface futurista minimalista
 for m in st.session_state.messages:
     avatar = USER_ICONE if m["role"] == "user" else JARVIS_ICONE
-    role_class = "stChatMessageUser" if m["role"] == "user" else "stChatMessageAssistant"
     with st.chat_message(m["role"], avatar=avatar):
-        st.markdown(f'<div class="jarvis-final-box {role_class}">{m["content"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="jarvis-final-box">{m["content"]}</div>', unsafe_allow_html=True)
 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Chat input (mantido exatamente como estava, sem alterações)
 prompt_obj = st.chat_input(
     "Comando...",
     accept_file=True,
