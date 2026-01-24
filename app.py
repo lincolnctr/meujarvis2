@@ -108,19 +108,26 @@ st.markdown(f"""
     }}
 
     /* ########## animação da barra deslizante no topo ########## */
-        /* Ajuste de padding/margin para evitar cortes de texto e centralizar melhor */
-    [data-testid="stChatInput"] > div {{
-        position: relative;
-        border-radius: 14px !important; 
-        overflow: hidden; 
-        /* Alterado para padding em vez de margin */
-        padding: 0 10px; 
-        border: 1px solid transparent; 
-        /* Adicionado max-width para melhor visualização em telas grandes */
-        max-width: 800px;
-        margin: 0 auto; /* Centraliza a caixa de input */
+    [data-testid="stChatInput"] > div::before {{
+        content: "";
+        position: absolute;
+        top: 0; 
+        left: 0;
+        width: 100%;
+        height: 2px; /* espessura da barra */
+        background: linear-gradient(
+            to right, 
+            transparent, 
+            var(--cor-barra-inicio), 
+            var(--cor-barra-meio), 
+            var(--cor-barra-fim),
+            transparent
+        );
+        transform: translateX(-100%); 
+        animation: slide-right 2s linear infinite;
+        opacity: 0; 
+        transition: opacity 0.3s ease;
     }}
-
 
     [data-testid="stChatInput"]:focus-within > div::before {{
         opacity: 1; 
