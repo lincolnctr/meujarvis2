@@ -27,75 +27,100 @@ COR_BARRA_3 = "#ff4500"
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
 
-# CSS com animações integradas e imagem de fundo para os circuitos
 st.markdown(f"""
     <style>
     :root {{
+        /* ########## VARIAVEIS CSS PARA PERSONALIZAR ########## */
         --cor-barra-inicio: {COR_BARRA_1}; 
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
-        --bg-input: #161b22;
-        --cor-jarvis-brilho: {COR_JARVIS}; /* Azul do J.A.R.V.I.S. */
+        /* ##################################################### */
     }}
 
-    @import url('https://fonts.googleapis.com');
+    @import url('https://fonts.googleapis.com[700]&display=swap');
 
     html {{ scroll-behavior: smooth !important; }}
-    .stApp {{ 
-        background-color: #0e1117; 
-        color: #e0e0e0; 
-        padding-bottom: 120px;
-        position: relative; 
-        /* ########## NOVO: IMAGEM DE FUNDO COM CIRCUITO ########## */
-        /* Usei um exemplo de URL, você pode substituir por outra imagem se quiser */
-        background-image: url('https://i.postimg.cc'); 
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-attachment: fixed;
-        /* Adiciona um overlay escuro por cima da imagem para o minimalismo */
-        background-blend-mode: overlay; 
-    }}
+    .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
     
-    /* ########## ESTILO E BRILHO DO TÍTULO JARVIS (MAIOR E PULSANTE) ########## */
-    .jarvis-header {{ 
-        font-family: 'Orbitron', sans-serif !important; 
-        font-size: 40px !important; 
-        color: var(--cor-jarvis-brilho); 
-        text-align: center; 
-        animation: jarvis-pulse 3s infinite alternate ease-in-out;
-        margin-top: 50px; 
+    /* 1. OVERLAY DE FUNDO */
+    .stApp:has([data-testid="stChatInput"] textarea:focus) {{
+        background: radial-gradient(circle at bottom, var(--cor-barra-inicio)11 0%, #05070a 100%) !important;
+        transition: background 0.5s ease;
     }}
 
-    @keyframes jarvis-pulse {{
-        0% {{ text-shadow: 0 0 8px var(--cor-jarvis-brilho)AA, 0 0 20px var(--cor-jarvis-brilho)77; }}
-        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 40px var(--cor-jarvis-brilho)99; }}
+    /* 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) */
+    [data-testid="stChatInput"] {{
+        position: fixed !important;
+        bottom: 0px !important; 
+        width: 100vw !important; 
+        left: 0px !important; 
+        z-index: 1000 !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 10px 0px 30px 0px !important; 
+        background: #0e1117; 
     }}
-    /* ######################################################################## */
 
-    /* [MANTIDO] 1. OVERLAY DE FUNDO */
-    /* Ajustado para não conflitar com a nova imagem de fundo */
-    .stApp:has([data-testid="stChatInput"] textarea:focus) {{ background: #0e1117 !important; transition: background 0.5s ease; }}
+    [data-testid="stChatInput"] textarea {{
+        background: rgba(22, 27, 34, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        transition: all 0.3s ease !important;
+        padding: 12px !important;
+        width: 100% !important; 
+    }}
 
-    /* [MANTIDO] 2. CAIXA DE MENSAGEM (Largura Total e Posição Fixa) */
-    [data-testid="stChatInput"] {{ position: fixed !important; bottom: 0px !important; width: 100vw !important; left: 0px !important; z-index: 1000 !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; padding: 10px 0px 30px 0px !important; background: #0e1117; }}
-    [data-testid="stChatInput"] textarea {{ background: rgba(22, 27, 34, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 12px !important; transition: all 0.3s ease !important; padding: 12px !important; width: 100% !important; }}
-    [data-testid="stChatInput"]:focus-within {{ transform: translateY(-20px) !important; }}
-    [data-testid="stChatInput"] > div {{ position: relative; border-radius: 14px !important; overflow: hidden; margin: 0 20px; border: 1px solid transparent; }}
+    [data-testid="stChatInput"]:focus-within {{
+        transform: translateY(-20px) !important; 
+    }}
 
-    /* [MANTIDO] ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO (LARANJA) */
-    [data-testid="stChatInput"] > div::before {{ content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(to right, transparent, var(--cor-barra-inicio), var(--cor-barra-meio), var(--cor-barra-fim), transparent); transform: translateX(-100%); animation: slide-right 2s linear infinite; opacity: 0; transition: opacity 0.3s ease; }}
-    [data-testid="stChatInput"]:focus-within > div::before {{ opacity: 1; }}
-    @keyframes slide-right {{ 0% {{ transform: translateX(-100%); }} 100% {{ transform: translateX(100%); }} }}
-    
-    /* [MANTIDO] Indicador de "pensando" */
-    .thinking-indicator {{ background: rgba(255, 140, 0, 0.15); border: 1px solid #ff8c00; border-radius: 8px; padding: 8px 12px; margin: 10px auto; text-align: center; font-size: 14px; color: #ff8c00; max-width: 200px; animation: pulse 1.5s infinite; display: none; }}
-    .thinking-active .thinking-indicator {{ display: block; }}
-    @keyframes pulse {{ 0%, 100% {{ opacity: 0.6; }} 50% {{ opacity: 1; }} }}
-    [data-testid="stChatInput"] textarea:focus {{ box-shadow: none !important; border-color: transparent !important; }}
+    [data-testid="stChatInput"] > div {{
+        position: relative;
+        border-radius: 14px !important; 
+        overflow: hidden; /* Mantém a barra de brilho confinada à borda */
+        margin: 0 20px; 
+        border: 1px solid transparent; /* Remove a borda anterior para evitar conflito */
+    }}
+
+    /* ########## ANIMAÇÃO DA BARRA DESLIZANTE NO TOPO (CORRIGIDO) ########## */
+    [data-testid="stChatInput"] > div::before {{
+        content: "";
+        position: absolute;
+        top: 0; /* Posiciona no topo exato */
+        left: 0;
+        width: 100%;
+        height: 2px; /* Espessura da barra */
+        /* Gradiente linear que desliza */
+        background: linear-gradient(
+            to right, 
+            transparent, 
+            var(--cor-barra-inicio), 
+            var(--cor-barra-meio), 
+            var(--cor-barra-fim),
+            transparent
+        );
+        /* Inicia fora da tela (-100%) e desliza 200% para a direita */
+        transform: translateX(-100%); 
+        animation: slide-right 2s linear infinite;
+        opacity: 0; /* Invisível por padrão */
+        transition: opacity 0.3s ease;
+    }}
+
+    [data-testid="stChatInput"]:focus-within > div::before {{
+        opacity: 1; /* Aparece ao focar */
+    }}
+
+    @keyframes slide-right {{
+        0% {{ transform: translateX(-100%); }}
+        100% {{ transform: translateX(100%); }}
+    }}
+    /* ###################################################################### */
+
+    [data-testid="stChatInput"] textarea:focus {{
+        box-shadow: none !important;
+        border-color: transparent !important;
+    }}
     </style>
 """, unsafe_allow_html=True)
-
 
 # ... [O restante do código permanece idêntico ao enviado por você] ...
 
