@@ -36,7 +36,7 @@ st.markdown(f"""
         --cor-jarvis-brilho: {COR_JARVIS};
         
         /* ########## PERSONALIZAÇÃO DE LARGURA ########## */
-        --largura-maxima-msgs: 98%; /* Altere aqui para expandir/recuar */
+        --largura-maxima-msgs: 80%; /* Altere aqui para expandir/recuar */
         /* ############################################### */
     }}
 
