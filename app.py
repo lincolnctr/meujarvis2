@@ -406,13 +406,25 @@ REGRAS IMUTÁVEIS:
                     st.session_state.messages.append({"role": "assistant", "content": full_res})
 
                 except groq.APIStatusError as e:
-    response_placeholder.markdown(f'''<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro de status na API Groq ({e.status_code}): {str(e)}</div>''', unsafe_allow_html=True)
+                    response_placeholder.markdown(
+                        f'''<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro de status na API Groq ({e.status_code}): {str(e)}</div>''',
+                        unsafe_allow_html=True
+                    )
 
-except groq.APIConnectionError as e:
-    response_placeholder.markdown(f'''<div class="jarvis-final-box" style="color:orange; border: 1px solid orange; padding: 15px;">Erro de conexão/timeout na Groq: {str(e)}</div>''', unsafe_allow_html=True)
+                except groq.APIConnectionError as e:
+                    response_placeholder.markdown(
+                        f'''<div class="jarvis-final-box" style="color:orange; border: 1px solid orange; padding: 15px;">Erro de conexão/timeout na Groq: {str(e)}</div>''',
+                        unsafe_allow_html=True
+                    )
 
-except groq.APIError as e:
-    response_placeholder.markdown(f'''<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro geral na API Groq: {str(e)}</div>''', unsafe_allow_html=True)
+                except groq.APIError as e:
+                    response_placeholder.markdown(
+                        f'''<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro geral na API Groq: {str(e)}</div>''',
+                        unsafe_allow_html=True
+                    )
 
-except Exception as e:
-    response_placeholder.markdown(f'''<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro inesperado: {str(e)}</div>''', unsafe_allow_html=True)
+                except Exception as e:
+                    response_placeholder.markdown(
+                        f'''<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro inesperado: {str(e)}</div>''',
+                        unsafe_allow_html=True
+                    )
