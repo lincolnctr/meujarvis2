@@ -5,10 +5,6 @@ import json
 import uuid
 import base64
 import random
-import streamlit as st
-
-st.set_page_config(layout="wide") # Adicione esta linha aqui
-
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
@@ -106,17 +102,13 @@ st.markdown(f"""
         transform: translateY(-20px) !important; 
     }}
 
-            [data-testid="stChatInput"] > div {{
+    [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important; 
         overflow: hidden; 
-        margin: 0 auto !important; /* Centraliza a caixa automaticamente */
-        width: 95% !important;   /* Ocupa 95% da largura da tela */
-        max-width: 800px;       /* Mantém a caixa usável em monitores gigantes */
+        margin: 0 20px; /* padding lateral para o texto */
         border: 1px solid transparent; 
     }}
-
-
 
     /* ########## animação da barra deslizante no topo ########## */
     [data-testid="stChatInput"] > div::before {{
