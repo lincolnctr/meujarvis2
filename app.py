@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 from groq import Groq
 import os
@@ -40,7 +41,7 @@ st.markdown(f"""
 
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
-    
+
     /* ########## CABEÇALHO J.A.R.V.I.S. (BRILHO PULSANTE ESTÁTICO) ########## */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
@@ -148,6 +149,7 @@ if "log_modificacoes" not in st.session_state: st.session_state.log_modificacoes
 if "humor_nivel" not in st.session_state: st.session_state.humor_nivel = 59
 if "sinceridade_nivel" not in st.session_state: st.session_state.sinceridade_nivel = 75
 if "is_thinking" not in st.session_state: st.session_state.is_thinking = False
+if "evitar_tema" not in st.session_state: st.session_state.evitar_tema = False
 
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
@@ -293,7 +295,7 @@ if prompt := st.chat_input("Comando..."):
             st.markdown(prompt)
 
         memoria_perfil = carregar_perfil()
-        
+
         with st.chat_message("assistant", avatar=JARVIS_ICONE):
             response_placeholder = st.empty()
             full_res = ""
@@ -314,6 +316,7 @@ REGRAS IMUTÁVEIS:
 - Autorizado apenas para falar informações pessoais se Lincoln autorizar.
 - Direto ao ponto, mas não deixe suas respostas sem personalidade mínima.
 - Quando questionado sobre sentimentos, responda de forma natural e positiva/negativa conforme o contexto atual, mas nunca responda que você não tem sentimentos.
+- Não fale sobre São Paulo, café da manhã, ou qualquer informação relacionada ao Senhor Lincoln, como sua localização ou gostos, a menos que ele dê permissão explícita para discutir esses tópicos.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância.
 """
             stream = client.chat.completions.create(
