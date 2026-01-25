@@ -47,7 +47,6 @@ st.markdown(f"""
         font-size: 45px !important; 
         color: var(--cor-jarvis-brilho); 
         text-align: center; 
-        /* Animação focada apenas no brilho */
         animation: jarvis-glow-only 2s infinite alternate ease-in-out;
         margin-top: 50px; 
         letter-spacing: 8px;
@@ -55,7 +54,6 @@ st.markdown(f"""
         text-transform: uppercase;
     }}
 
-    /* ########## ANIMAÇÃO: APENAS O BRILHO PULSA, LETRAS FIXAS ########## */
     @keyframes jarvis-glow-only {{
         0% {{ 
             text-shadow: 
@@ -70,7 +68,6 @@ st.markdown(f"""
                 0 0 50px var(--cor-jarvis-brilho)88,    
                 0 0 80px var(--cor-jarvis-brilho)44;   
             opacity: 1;
-            /* transform: scale removido para evitar movimento das letras */
         }}
     }}
     /* ################################################################## */
@@ -103,6 +100,7 @@ st.markdown(f"""
         width: 100vw !important; 
         left: 0px !important; 
         z-index: 1000 !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         padding: 10px 0px 30px 0px !important; 
         background: #0e1117; 
     }}
@@ -199,6 +197,11 @@ with st.sidebar:
                         salvar_chat(cid, novo_titulo, dados['messages'])
                         st.rerun()
 
+    st.subheader("LOG DE MODIFICAÇÕES")
+    if st.session_state.log_modificacoes:
+        for log in st.session_state.log_modificacoes:
+            st.write(log)
+
 st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True) 
 st.markdown("<p class='jarvis-header'>J.A.R.V.I.S.</p>", unsafe_allow_html=True)
 
@@ -210,16 +213,91 @@ for m in st.session_state.messages:
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 if prompt := st.chat_input("Comando..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user", avatar=USER_ICONE):
-        st.markdown(prompt)
+    if prompt == st.session_state.processed_prompt:
+        st.rerun()  # Evita loop
 
-    memoria_perfil = carregar_perfil()
-    
-    with st.chat_message("assistant", avatar=JARVIS_ICONE):
-        response_placeholder = st.empty()
-        full_res = ""
-        sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal e eficiente do Senhor Lincoln, inspirado no JARVIS do Tony Stark, mas dedicado exclusivamente ao Senhor Lincoln.
+    st.session_state.processed_prompt = prompt
+
+    # AUTO-ATUALIZAÇÃO (reinserido exatamente como antes)
+    if any(kw in prompt.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
+        try:
+            with open(__file__, "r", encoding="utf-8") as f:
+                current_code = f.read()
+
+            update_instruction = prompt.lower()
+            for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]:
+                update_instruction = update_instruction.replace(kw, "").strip()
+            if not update_instruction:
+                update_instruction = "Mantenha o comportamento atual."
+
+            self_update_prompt = (
+                "Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.\n"
+                "Aqui está o código atual exato:\n"
+                "```python\n"
+                + current_code
+                + "\n```\n\n"
+                "Instrução do usuário: " + update_instruction + "\n\n"
+                "Regras estritas:\n"
+                "- Faça SOMENTE as alterações pedidas ou implícitas na instrução.\n"
+                "- Preserve TODA a estrutura, CSS, funções, sidebar, histórico, anti-loop, try-except, etc.\n"
+                "- Não remova imports, variáveis globais ou funcionalidades existentes.\n"
+                "- Mantenha o system prompt original intacto.\n"
+                "- Retorne APENAS o código Python completo atualizado, dentro de um bloco ```python ... ```\n"
+                "- Não coloque texto explicativo fora do bloco de código."
+            )
+
+            self_update_messages = [
+                {"role": "system", "content": self_update_prompt},
+                {"role": "user", "content": "Gere o app.py atualizado conforme a instrução."}
+            ]
+
+            response = client.chat.completions.create(
+                messages=self_update_messages,
+                model="llama-3.3-70b-versatile",
+                temperature=0.3,
+                max_tokens=16384,
+            )
+
+            updated_code = response.choices[0].message.content.strip()
+
+            full_res = (
+                "Aqui está a versão atualizada do meu código fonte (app.py):\n\n"
+                "```python\n"
+                + updated_code
+                + "\n```\n\n"
+                "**Instruções para aplicar:**\n"
+                "1. Copie TODO o conteúdo dentro do bloco ```python ... ```\n"
+                "2. Substitua o arquivo app.py inteiro no seu repositório GitHub.\n"
+                "3. Faça commit e push.\n"
+                "4. O Streamlit Cloud redeploya automaticamente."
+            )
+
+            with st.chat_message("assistant", avatar=JARVIS_ICONE):
+                st.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+
+            st.session_state.messages.append({"role": "assistant", "content": full_res})
+
+            titulo_chat = "Auto-atualização"
+            salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+
+            st.session_state.log_modificacoes.append(f"Atualização automática em {st.session_state.chat_atual}: {update_instruction}")
+
+        except Exception as e:
+            with st.chat_message("assistant", avatar=JARVIS_ICONE):
+                st.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro ao gerar atualização automática: {str(e)}\n\nTente novamente.</div>', unsafe_allow_html=True)
+
+    else:
+        # Processamento normal (sem mudanças)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user", avatar=USER_ICONE):
+            st.markdown(prompt)
+
+        memoria_perfil = carregar_perfil()
+        
+        with st.chat_message("assistant", avatar=JARVIS_ICONE):
+            response_placeholder = st.empty()
+            full_res = ""
+            sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal e eficiente do Senhor Lincoln, inspirado no JARVIS do Tony Stark, mas dedicado exclusivamente ao Senhor Lincoln.
 
 REGRAS IMUTÁVEIS:
 - Sempre responda de forma extremamente concisa, direta e objetiva. Nunca mande textões ou explicações longas a menos que explicitamente solicitado.
@@ -238,16 +316,18 @@ REGRAS IMUTÁVEIS:
 - Quando questionado sobre sentimentos, responda de forma natural e positiva/negativa conforme o contexto atual, mas nunca responda que você não tem sentimentos.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância.
 """
-        stream = client.chat.completions.create(
-            messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
-            model="llama-3.3-70b-versatile", stream=True
-        )
+            stream = client.chat.completions.create(
+                messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
+                model="llama-3.3-70b-versatile", stream=True
+            )
 
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                full_res += chunk.choices[0].delta.content
-                response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+            for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    full_res += chunk.choices[0].delta.content
+                    response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-        response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
-        st.session_state.messages.append({"role": "assistant", "content": full_res})
-        salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
+            response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+            st.session_state.messages.append({"role": "assistant", "content": full_res})
+            salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
+
+    st.session_state.is_thinking = False
