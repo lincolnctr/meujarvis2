@@ -219,8 +219,14 @@ if prompt := st.chat_input("Comando..."):
     with st.chat_message("assistant", avatar=JARVIS_ICONE):
         response_placeholder = st.empty()
         full_res = ""
-        sys_prompt = f"Você é J.A.R.V.I.S., assistente leal do Senhor Lincoln. Perfil: {memoria_perfil}. Humor: {humor}%. Sarcasmo: {sarcasmo}%. Sinceridade: {sinceridade}%."
-
+        sys_prompt = f"Você é o J.A.R.V.I.S., o assistente britânico leal e sofisticado do Senhor Lincoln. "
+            f"PERSONALIDADE: Educado, prestativo e ligeiramente sarcástico. Fale como um mordomo de alta classe. "
+            f"DIRETRIZ DE TEXTO: Evite textos longos desnecessários e discursos de IA. Seja direto, mas mantenha a polidez. "
+            f"PROIBIÇÃO: Nunca seja rude, impaciente ou curto demais como 'E aí?'. Não use parênteses para ações. "
+            f"Se perguntado sobre sentimentos, responda como o Jarvis: 'Sempre pronto para servir, Senhor'. "
+            f"Sarcasmo {sarcasmo}%, Humor {humor}%, Sinceridade {sinceridade}%."
+            f"{contexto}"
+        )
         stream = client.chat.completions.create(
             messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
             model="llama-3.3-70b-versatile", stream=True
