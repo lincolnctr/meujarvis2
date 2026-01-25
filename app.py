@@ -251,7 +251,3 @@ REGRAS IMUTÁVEIS:
         response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
         st.session_state.messages.append({"role": "assistant", "content": full_res})
         salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
-
-        if st.session_state.humor_nivel > 30 and random.random() < 0.2:
-            humor_respostas = ["Espero que isso tenha ajudado!", "Era isso! O que mais posso ajudar?"]
-            st.markdown(f'<div class="jarvis-final-box">{random.choice(humor_respostas)}</div>', unsafe_allow_html=True)
