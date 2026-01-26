@@ -39,9 +39,13 @@ st.markdown(f"""
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
     html {{ scroll-behavior: smooth !important; }}
-    .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
+    .stApp {{ 
+        background-color: #0e1117; 
+        color: #e0e0e0; 
+        padding-bottom: 280px !important;  /* Aumentado para permitir scroll mais baixo */
+    }}
 
-    /* ########## CABEÇALHO J.A.R.V.I.S. (BRILHO PULSANTE ESTÁTICO) ########## */
+    /* CABEÇALHO J.A.R.V.I.S. (mantido) */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
         font-size: 45px !important; 
@@ -52,12 +56,6 @@ st.markdown(f"""
         letter-spacing: 8px;
         font-weight: 700;
         text-transform: uppercase;
-    }}
-
-    caixa-de-texto {{
-  position: fixed;
-  bottom: 0;
-  padding-bottom: 20px;
     }}
 
     @keyframes jarvis-glow-only {{
@@ -76,15 +74,15 @@ st.markdown(f"""
             opacity: 1;
         }}
     }}
-    /* ################################################################## */
 
-    /* CAIXAS DE DIÁLOGO AMPLIADAS */
+    /* CAIXAS DE DIÁLOGO AMPLIADAS + espaço extra abaixo da última resposta */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
         border: 1px solid rgba(0, 212, 255, 0.2); 
         border-radius: 0 15px 15px 15px; 
         padding: 15px; 
         background: rgba(255, 255, 255, 0.05); 
         margin-top: 5px;
+        margin-bottom: 120px !important;  /* Espaço extra abaixo de cada resposta (evita corte) */
         max-width: var(--largura-maxima-msgs) !important;
     }}
 
@@ -99,7 +97,7 @@ st.markdown(f"""
 
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* ESTRUTURA DO CHAT INPUT */
+    /* ESTRUTURA DO CHAT INPUT (mantido exatamente como estava) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
