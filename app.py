@@ -339,3 +339,4 @@ REGRAS IMUTÁVEIS:
             salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
 
     st.session_state.is_thinking = False
+                    
