@@ -38,9 +38,10 @@ st.markdown(f"""
 
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-    /* ########## ESTABILIZAÇÃO DE TELA ########## */
-    html {{ 
-        scroll-behavior: auto !important; /* Desativa o deslize automático/suave */
+    /* ########## ESTABILIZAÇÃO DE TELA (DNA GEMINI) ########## */
+    html, body {{ 
+        scroll-behavior: auto !important; 
+        overflow-anchor: none !important; /* Impede o navegador de tentar "ajustar" o scroll sozinho */
     }}
     
     .stApp {{ 
@@ -88,16 +89,16 @@ st.markdown(f"""
 
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* CAIXA DE INPUT FIXA (SEM TRASLAÇÃO PARA NÃO PUXAR A TELA) */
+    /* CAIXA DE INPUT FIXA (ESTILO GEMINI) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0 !important;
         width: 100vw !important;
         left: 0 !important;
         z-index: 1000 !important;
-        padding: 10px 0 30px 0 !important; 
-        background: #0e1117;
-        transform: none !important; /* Removido o translateY para evitar o pulo da tela */
+        padding: 10px 0 20px 0 !important; 
+        background: #0e1117 !important;
+        transform: none !important;
     }}
 
     [data-testid="stChatInput"] textarea {{
@@ -107,12 +108,12 @@ st.markdown(f"""
         padding: 12px !important;
         width: 100% !important;
         min-height: 52px !important;
-        transition: min-height 0.3s ease !important; /* Expansão apenas da caixa, sem mover a página */
+        transition: min-height 0.2s ease-out !important; /* Expansão rápida e suave */
     }}
 
-    /* Expansão interna do campo ao digitar, sem mover o container externo */
+    /* A caixa cresce para cima ao focar, sem mover o container pai */
     [data-testid="stChatInput"]:focus-within textarea {{
-        min-height: 120px !important; 
+        min-height: 150px !important; 
     }}
 
     /* BARRA RGB DESLIZANTE */
@@ -148,6 +149,7 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 
