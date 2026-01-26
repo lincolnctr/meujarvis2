@@ -54,6 +54,12 @@ st.markdown(f"""
         text-transform: uppercase;
     }}
 
+    caixa-de-texto {{
+  position: fixed;
+  bottom: 0;
+  padding-bottom: 20px;
+    }}
+
     @keyframes jarvis-glow-only {{
         0% {{ 
             text-shadow: 
