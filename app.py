@@ -209,7 +209,7 @@ with st.sidebar:
     sinceridade = st.slider("Sinceridade %", 0, 100, st.session_state.sinceridade_nivel, key="sinceridade_slider")
     st.session_state.sinceridade_nivel = sinceridade
 
-        if st.button("+ NOVO PROTOCOLO (RESET)"):
+    if st.button("+ NOVO PROTOCOLO (RESET)"):
         # Gera um novo ID único para o chat
         novo_id = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.chat_atual = novo_id
