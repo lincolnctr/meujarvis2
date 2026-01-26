@@ -38,10 +38,18 @@ st.markdown(f"""
 
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
-    html {{ scroll-behavior: smooth !important; }}
-    .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
+    /* ########## ESTABILIZAÇÃO DE TELA ########## */
+    html {{ 
+        scroll-behavior: auto !important; /* Desativa o deslize automático/suave */
+    }}
+    
+    .stApp {{ 
+        background-color: #0e1117; 
+        color: #e0e0e0; 
+        padding-bottom: 120px; 
+    }}
 
-    /* CABEÇALHO J.A.R.V.I.S. (mantido) */
+    /* CABEÇALHO J.A.R.V.I.S. (PULSAÇÃO DE BRILHO APENAS) */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
         font-size: 45px !important; 
@@ -55,23 +63,11 @@ st.markdown(f"""
     }}
 
     @keyframes jarvis-glow-only {{
-        0% {{ 
-            text-shadow: 
-                0 0 10px var(--cor-jarvis-brilho)88, 
-                0 0 20px var(--cor-jarvis-brilho)44; 
-            opacity: 0.9;
-        }}
-        100% {{ 
-            text-shadow: 
-                0 0 15px var(--cor-jarvis-brilho),      
-                0 0 30px var(--cor-jarvis-brilho)AA,    
-                0 0 50px var(--cor-jarvis-brilho)88,    
-                0 0 80px var(--cor-jarvis-brilho)44;   
-            opacity: 1;
-        }}
+        0% {{ text-shadow: 0 0 10px var(--cor-jarvis-brilho)88, 0 0 20px var(--cor-jarvis-brilho)44; opacity: 0.9; }}
+        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 30px var(--cor-jarvis-brilho)AA, 0 0 50px var(--cor-jarvis-brilho)88, 0 0 80px var(--cor-jarvis-brilho)44; opacity: 1; }}
     }}
 
-    /* CAIXAS DE DIÁLOGO AMPLIADAS (mantido) */
+    /* CAIXAS DE DIÁLOGO AMPLIADAS */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
         border: 1px solid rgba(0, 212, 255, 0.2); 
         border-radius: 0 15px 15px 15px; 
@@ -92,41 +88,34 @@ st.markdown(f"""
 
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* CAIXA DE INPUT - EXPANSÃO SUAVE PARA CIMA (versão mais robusta) */
+    /* CAIXA DE INPUT FIXA (SEM TRASLAÇÃO PARA NÃO PUXAR A TELA) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0 !important;
         width: 100vw !important;
         left: 0 !important;
         z-index: 1000 !important;
-        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important; /* animação mais "elástica" e suave */
-        padding: 10px 0 40px 0 !important; /* espaço extra embaixo para expansão não cortar */
+        padding: 10px 0 30px 0 !important; 
         background: #0e1117;
+        transform: none !important; /* Removido o translateY para evitar o pulo da tela */
     }}
 
-    /* Ao focar: sobe bastante */
-    [data-testid="stChatInput"]:focus-within {{
-        transform: translateY(-150px) !important; /* sobe 150px - ajuste aqui se quiser mais/menos */
-    }}
-
-    /* Textarea interna: expande altura ao focar */
     [data-testid="stChatInput"] textarea {{
         background: rgba(22, 27, 34, 0.8) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 12px !important;
-        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important; /* mesma curva suave */
         padding: 12px !important;
         width: 100% !important;
         min-height: 52px !important;
-        resize: none !important;
+        transition: min-height 0.3s ease !important; /* Expansão apenas da caixa, sem mover a página */
     }}
 
+    /* Expansão interna do campo ao digitar, sem mover o container externo */
     [data-testid="stChatInput"]:focus-within textarea {{
-        min-height: 160px !important; /* expande bastante verticalmente */
-        padding: 16px !important;
+        min-height: 120px !important; 
     }}
 
-    /* Mantém a barra RGB deslizante */
+    /* BARRA RGB DESLIZANTE */
     [data-testid="stChatInput"] > div {{
         position: relative;
         border-radius: 14px !important;
