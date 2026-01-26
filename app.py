@@ -42,7 +42,7 @@ st.markdown(f"""
     .stApp {{ 
         background-color: #0e1117; 
         color: #e0e0e0; 
-        padding-bottom: 220px !important;  /* espaço geral para scroll descer */
+        padding-bottom: 280px !important;  /* Aumentado para permitir scroll mais baixo */
     }}
 
     /* CABEÇALHO J.A.R.V.I.S. (mantido) */
@@ -75,13 +75,14 @@ st.markdown(f"""
         }}
     }}
 
-    /* CAIXAS DE DIÁLOGO AMPLIADAS (sem margin-bottom fixo agora) */
+    /* CAIXAS DE DIÁLOGO AMPLIADAS + espaço extra abaixo da última resposta */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
         border: 1px solid rgba(0, 212, 255, 0.2); 
         border-radius: 0 15px 15px 15px; 
         padding: 15px; 
         background: rgba(255, 255, 255, 0.05); 
         margin-top: 5px;
+        margin-bottom: 120px !important;  /* Espaço extra abaixo de cada resposta (evita corte) */
         max-width: var(--largura-maxima-msgs) !important;
     }}
 
@@ -95,11 +96,6 @@ st.markdown(f"""
     }}
 
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-
-    /* Última mensagem do assistente ganha espaço extra abaixo */
-    .last-assistant-message {{
-        margin-bottom: 180px !important;  /* espaço grande só na última resposta do JARVIS */
-    }}
 
     /* ESTRUTURA DO CHAT INPUT (mantido exatamente como estava) */
     [data-testid="stChatInput"] {{
@@ -144,35 +140,8 @@ st.markdown(f"""
         border-color: transparent !important;
     }}
     </style>
-
-    <!-- JavaScript para aplicar classe 'last-assistant-message' só na última resposta do JARVIS -->
-    <script>
-    function updateLastAssistantMessage() {{
-        // Remove classe de todas as mensagens
-        document.querySelectorAll('.jarvis-final-box').forEach(box => {{
-            box.classList.remove('last-assistant-message');
-        }});
-
-        // Encontra a última mensagem do assistente (tem avatar do JARVIS)
-        const messages = document.querySelectorAll('[data-testid="stChatMessage"]');
-        let lastAssistant = null;
-        messages.forEach(msg => {{
-            if (msg.querySelector('img[src*="image-5.jpg"]')) {{  // avatar do JARVIS
-                lastAssistant = msg.querySelector('.jarvis-final-box');
-            }}
-        }});
-
-        if (lastAssistant) {{
-            lastAssistant.classList.add('last-assistant-message');
-        }}
-    }}
-
-    // Executa quando a página carrega e após cada atualização
-    window.addEventListener('load', updateLastAssistantMessage);
-    const observer = new MutationObserver(updateLastAssistantMessage);
-    observer.observe(document.body, {{ childList: true, subtree: true }});
-    </script>
 """, unsafe_allow_html=True)
+
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
 
