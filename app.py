@@ -209,8 +209,21 @@ with st.sidebar:
     sinceridade = st.slider("Sinceridade %", 0, 100, st.session_state.sinceridade_nivel, key="sinceridade_slider")
     st.session_state.sinceridade_nivel = sinceridade
 
-    if st.button("+ NOVO PROTOCOLO (RESET)"):
+        if st.button("+ NOVO PROTOCOLO (RESET)"):
+        # Gera um novo ID único para o chat
+        novo_id = f"chat_{uuid.uuid4().hex[:6]}"
+        st.session_state.chat_atual = novo_id
+        
+        # Limpa as mensagens
         st.session_state.messages = []
+        
+        # Salva imediatamente o novo chat vazio
+        salvar_chat(novo_id, "Novo Protocolo", [])
+        
+        # Limpa o processed_prompt para evitar loop
+        st.session_state.processed_prompt = None
+        
+        # Atualiza a interface
         st.rerun()
 
     st.subheader("REGISTROS")
