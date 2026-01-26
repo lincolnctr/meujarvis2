@@ -33,119 +33,66 @@ st.markdown(f"""
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
         --cor-jarvis-brilho: #00d4ff; 
-        --largura-maxima-msgs: 95%; 
     }}
 
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-
-    /* ########## ESTABILIZAÇÃO DE TELA (DNA GEMINI) ########## */
-    html, body {{ 
-        scroll-behavior: auto !important; 
-        overflow-anchor: none !important; /* Impede o navegador de tentar "ajustar" o scroll sozinho */
-    }}
-    
-    .stApp {{ 
-        background-color: #0e1117; 
-        color: #e0e0e0; 
-        padding-bottom: 120px; 
+    /* 1. TRAVA A ESTRUTURA PRINCIPAL (IMPEDE O PULO DA TELA) */
+    html, body, .stApp {{ 
+        overflow: hidden !important; 
+        height: 100vh !important;
+        position: fixed;
+        width: 100%;
     }}
 
-    /* CABEÇALHO J.A.R.V.I.S. (PULSAÇÃO DE BRILHO APENAS) */
+    /* 2. CRIA UMA ÁREA DE ROLAGEM EXCLUSIVA PARA AS MENSAGENS */
+    /* Isso faz com que o Título e o Input fiquem parados enquanto só o chat mexe */
+    [data-testid="stVerticalBlock"] {{
+        max-height: 70vh !important; /* Ajuste conforme necessário */
+        overflow-y: auto !important;
+        padding-bottom: 100px !important;
+    }}
+
+    /* 3. CABEÇALHO FIXO NO TOPO */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
-        font-size: 45px !important; 
+        font-size: 40px !important; 
         color: var(--cor-jarvis-brilho); 
         text-align: center; 
         animation: jarvis-glow-only 2s infinite alternate ease-in-out;
-        margin-top: 50px; 
-        letter-spacing: 8px;
-        font-weight: 700;
+        padding: 20px 0;
+        background: #0e1117;
+        position: sticky;
+        top: 0;
+        z-index: 999;
         text-transform: uppercase;
     }}
 
     @keyframes jarvis-glow-only {{
-        0% {{ text-shadow: 0 0 10px var(--cor-jarvis-brilho)88, 0 0 20px var(--cor-jarvis-brilho)44; opacity: 0.9; }}
-        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 30px var(--cor-jarvis-brilho)AA, 0 0 50px var(--cor-jarvis-brilho)88, 0 0 80px var(--cor-jarvis-brilho)44; opacity: 1; }}
+        0% {{ text-shadow: 0 0 10px var(--cor-jarvis-brilho)88; opacity: 0.8; }}
+        100% {{ text-shadow: 0 0 30px var(--cor-jarvis-brilho)AA; opacity: 1; }}
     }}
 
-    /* CAIXAS DE DIÁLOGO AMPLIADAS */
+    /* 4. INPUT FIXO NA BASE (SEM MOVER) */
+    [data-testid="stChatInput"] {{
+        position: fixed !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        background: #0e1117 !important;
+        z-index: 1000 !important;
+        transform: none !important;
+    }}
+
+    /* ESTILO DAS MENSAGENS (MANTIDO) */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
         border: 1px solid rgba(0, 212, 255, 0.2); 
         border-radius: 0 15px 15px 15px; 
         padding: 15px; 
         background: rgba(255, 255, 255, 0.05); 
-        margin-top: 5px;
-        max-width: var(--largura-maxima-msgs) !important;
+        margin-bottom: 10px;
     }}
 
-    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ 
-        margin-left: auto !important; 
-        width: fit-content !important; 
-        max-width: var(--largura-maxima-msgs) !important; 
-        background: rgba(0, 212, 255, 0.1) !important; 
-        border: 1px solid rgba(0, 212, 255, 0.3); 
-        border-radius: 15px 15px 0 15px !important; 
-    }}
-
-    [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-
-    /* CAIXA DE INPUT FIXA (ESTILO GEMINI) */
-    [data-testid="stChatInput"] {{
-        position: fixed !important;
-        bottom: 0 !important;
-        width: 100vw !important;
-        left: 0 !important;
-        z-index: 1000 !important;
-        padding: 10px 0 20px 0 !important; 
-        background: #0e1117 !important;
-        transform: none !important;
-    }}
-
-    [data-testid="stChatInput"] textarea {{
-        background: rgba(22, 27, 34, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        padding: 12px !important;
-        width: 100% !important;
-        min-height: 52px !important;
-        transition: min-height 0.2s ease-out !important; /* Expansão rápida e suave */
-    }}
-
-    /* A caixa cresce para cima ao focar, sem mover o container pai */
-    [data-testid="stChatInput"]:focus-within textarea {{
-        min-height: 150px !important; 
-    }}
-
-    /* BARRA RGB DESLIZANTE */
-    [data-testid="stChatInput"] > div {{
-        position: relative;
-        border-radius: 14px !important;
-        overflow: hidden;
-        margin: 0 20px;
-        border: 1px solid transparent;
-    }}
-
-    [data-testid="stChatInput"] > div::before {{
-        content: "";
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 2px;
-        background: linear-gradient(to right, transparent, var(--cor-barra-inicio), var(--cor-barra-meio), var(--cor-barra-fim), transparent);
-        transform: translateX(-100%);
-        animation: slide-right 2s linear infinite;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }}
-
-    [data-testid="stChatInput"]:focus-within > div::before {{ opacity: 1; }}
-
-    @keyframes slide-right {{
-        0% {{ transform: translateX(-100%); }}
-        100% {{ transform: translateX(100%); }}
-    }}
-
+    /* REMOVE O EFEITO DE FOCO QUE PUXA A TELA */
     [data-testid="stChatInput"] textarea:focus {{
         box-shadow: none !important;
-        border-color: transparent !important;
     }}
     </style>
 """, unsafe_allow_html=True)
