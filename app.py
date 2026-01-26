@@ -13,7 +13,7 @@ TAMANHO_FONTE = 15
 COR_JARVIS = "#00d4ff" 
 COR_GLOW_IA = "#ff8c00"
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
-USER_ICONE = "https://i.postimg.cc/8chLs8nr/image-6.jpg"
+USER_ICONE = "https://i.postimg.cc/DZvSJR4g/Picsart-26-01-24-00-11-17-623.png"
 # =========================================================
 
 # =========================================================
@@ -41,7 +41,7 @@ st.markdown(f"""
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
 
-    /* CABEÇALHO J.A.R.V.I.S. (mantido) */
+    /* ########## CABEÇALHO J.A.R.V.I.S. (BRILHO PULSANTE ESTÁTICO) ########## */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
         font-size: 45px !important; 
@@ -70,8 +70,9 @@ st.markdown(f"""
             opacity: 1;
         }}
     }}
+    /* ################################################################## */
 
-    /* CAIXAS DE DIÁLOGO AMPLIADAS (mantido) */
+    /* CAIXAS DE DIÁLOGO AMPLIADAS */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
         border: 1px solid rgba(0, 212, 255, 0.2); 
         border-radius: 0 15px 15px 15px; 
@@ -92,46 +93,23 @@ st.markdown(f"""
 
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* CAIXA DE INPUT - EXPANSÃO SUAVE PARA CIMA (versão mais robusta) */
+    /* ESTRUTURA DO CHAT INPUT */
     [data-testid="stChatInput"] {{
         position: fixed !important;
-        bottom: 0 !important;
-        width: 100vw !important;
-        left: 0 !important;
+        bottom: 0px !important; 
+        width: 100vw !important; 
+        left: 0px !important; 
         z-index: 1000 !important;
-        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important; /* animação mais "elástica" e suave */
-        padding: 10px 0 40px 0 !important; /* espaço extra embaixo para expansão não cortar */
-        background: #0e1117;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 10px 0px 30px 0px !important; 
+        background: #0e1117; 
     }}
 
-    /* Ao focar: sobe bastante */
-    [data-testid="stChatInput"]:focus-within {{
-        transform: translateY(-150px) !important; /* sobe 150px - ajuste aqui se quiser mais/menos */
-    }}
-
-    /* Textarea interna: expande altura ao focar */
-    [data-testid="stChatInput"] textarea {{
-        background: rgba(22, 27, 34, 0.8) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important; /* mesma curva suave */
-        padding: 12px !important;
-        width: 100% !important;
-        min-height: 52px !important;
-        resize: none !important;
-    }}
-
-    [data-testid="stChatInput"]:focus-within textarea {{
-        min-height: 160px !important; /* expande bastante verticalmente */
-        padding: 16px !important;
-    }}
-
-    /* Mantém a barra RGB deslizante */
     [data-testid="stChatInput"] > div {{
         position: relative;
-        border-radius: 14px !important;
+        border-radius: 14px !important; 
         overflow: hidden;
-        margin: 0 20px;
+        margin: 0 20px; 
         border: 1px solid transparent;
     }}
 
@@ -140,7 +118,7 @@ st.markdown(f"""
         position: absolute;
         top: 0; left: 0; width: 100%; height: 2px;
         background: linear-gradient(to right, transparent, var(--cor-barra-inicio), var(--cor-barra-meio), var(--cor-barra-fim), transparent);
-        transform: translateX(-100%);
+        transform: translateX(-100%); 
         animation: slide-right 2s linear infinite;
         opacity: 0;
         transition: opacity 0.3s ease;
