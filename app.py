@@ -26,35 +26,6 @@ COR_BARRA_3 = "#ff4500"
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
 
-import streamlit as st
-# ... suas outras importações
-
-# Injeção de Meta Tag e Script para corrigir o teclado no mobile
-st.markdown(
-    """
-    <script>
-        // 1. Força o redimensionamento da área visual (Viewport)
-        const meta = document.createElement('meta');
-        meta.name = "viewport";
-        meta.content = "width=device-width, initial-scale=1.0, interactive-widget=resizes-content";
-        document.getElementsByTagName('head')[0].appendChild(meta);
-
-        // 2. Garante que o campo de input atual suba ao receber foco
-        document.addEventListener('focusin', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                setTimeout(() => {
-                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
-            }
-        });
-    </script>
-    """,
-    unsafe_allow_html=True
-)
-
-# Continue com o seu código (ex: st.title("Meu Chat"))
-
-
 st.markdown(f"""
     <style>
     :root {{
