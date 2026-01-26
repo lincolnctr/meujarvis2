@@ -42,7 +42,7 @@ st.markdown(f"""
     .stApp {{ 
         background-color: #0e1117; 
         color: #e0e0e0; 
-        padding-bottom: 100px !important;  /* Aumentado para permitir scroll mais baixo */
+        padding-bottom: 280px !important;  /* Aumentado para permitir scroll mais baixo */
     }}
 
     /* CABEÇALHO J.A.R.V.I.S. (mantido) */
@@ -82,7 +82,7 @@ st.markdown(f"""
         padding: 15px; 
         background: rgba(255, 255, 255, 0.05); 
         margin-top: 5px;
-        margin-bottom: 120px !important;  /* Espaço extra abaixo de cada resposta (evita corte) */
+        margin-bottom: 100px !important;  /* Espaço extra abaixo de cada resposta (evita corte) */
         max-width: var(--largura-maxima-msgs) !important;
     }}
 
