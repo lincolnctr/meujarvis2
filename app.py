@@ -131,51 +131,35 @@ body {{
     background: rgba(22, 27, 34, 0.8) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 12px !important;
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    padding: 12px !important;
-    width: 100% !important;
-    min-height: 52px !important;
-    resize: none !important;
-}}
+st.markdown(f"""
+    <style>
+    /* 1. COMPORTAMENTO PADRÃO: ROLAGEM LIBERADA */
+    html, body {{
+        overflow-y: auto !important;
+    }}
 
-[data-testid="stChatInput"]:focus-within textarea {{
-    min-height: 160px !important;
-    padding: 16px !important;
-}}
+    /* 2. O PULO DO GATO: QUANDO O INPUT FOR CLICADO, TRAVA TUDO */
+    /* Se o stApp contém um ChatInput que está com foco, desativa o scroll */
+    .stApp:has([data-testid="stChatInput"] textarea:focus) {{
+        overflow: hidden !important;
+        height: 100vh !important;
+        position: fixed !important;
+        width: 100% !important;
+    }}
 
-[data-testid="stChatInput"] > div {{
-    position: relative;
-    border-radius: 14px !important;
-    overflow: hidden;
-    margin: 0 20px;
-    border: 1px solid transparent;
-}}
+    /* 3. MANTÉM O INPUT NO LUGAR SEM SUBIR */
+    [data-testid="stChatInput"] {{
+        position: fixed !important;
+        bottom: 0 !important;
+        z-index: 1000 !important;
+        transform: none !important; /* Impede que o CSS interno do Streamlit tente subir a caixa */
+    }}
 
-[data-testid="stChatInput"] > div::before {{
-    content: "";
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 2px;
-    background: linear-gradient(to right, transparent, var(--cor-barra-inicio), var(--cor-barra-meio), var(--cor-barra-fim), transparent);
-    transform: translateX(-100%);
-    animation: slide-right 2s linear infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}}
-
-[data-testid="stChatInput"]:focus-within > div::before {{
-    opacity: 1;
-}}
-
-@keyframes slide-right {{
-    0% {{ transform: translateX(-100%); }}
-    100% {{ transform: translateX(100%); }}
-}}
-
-[data-testid="stChatInput"] textarea:focus {{
-    box-shadow: none !important;
-    border-color: transparent !important;
-}}
-</style>
+    /* 4. GARANTE QUE O CONTEÚDO NÃO SUMA ATRÁS DA TRAVA */
+    .stMain {{
+        overflow: hidden !important;
+    }}
+    </style>
 """, unsafe_allow_html=True)
 
 CHATS_DIR = "chats_db"
