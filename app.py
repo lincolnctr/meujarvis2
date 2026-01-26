@@ -42,7 +42,7 @@ st.markdown(f"""
     .stApp {{ 
         background-color: #0e1117; 
         color: #e0e0e0; 
-        padding-bottom: 200px !important;  /* Aumentado para permitir scroll mais baixo */
+        padding-bottom: 100px !important;  /* Aumentado para permitir scroll mais baixo */
     }}
 
     /* CABEÇALHO J.A.R.V.I.S. (mantido) */
