@@ -82,7 +82,7 @@ st.markdown(f"""
         padding: 15px; 
         background: rgba(255, 255, 255, 0.05); 
         margin-top: 5px;
-        margin-bottom: 100px !important;  /* Espaço extra abaixo de cada resposta (evita corte) */
+        margin-bottom: 80px !important;  /* Espaço extra abaixo de cada resposta (evita corte) */
         max-width: var(--largura-maxima-msgs) !important;
     }}
 
