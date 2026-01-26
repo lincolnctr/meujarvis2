@@ -41,7 +41,7 @@ st.markdown(f"""
     html {{ scroll-behavior: smooth !important; }}
     .stApp {{ background-color: #0e1117; color: #e0e0e0; padding-bottom: 120px; }}
 
-    /* ########## CABEÇALHO J.A.R.V.I.S. (BRILHO PULSANTE ESTÁTICO) ########## */
+    /* CABEÇALHO J.A.R.V.I.S. (mantido exatamente como estava) */
     .jarvis-header {{ 
         font-family: 'Orbitron', sans-serif !important; 
         font-size: 45px !important; 
@@ -70,9 +70,8 @@ st.markdown(f"""
             opacity: 1;
         }}
     }}
-    /* ################################################################## */
 
-    /* CAIXAS DE DIÁLOGO AMPLIADAS */
+    /* CAIXAS DE DIÁLOGO AMPLIADAS (mantido) */
     .jarvis-final-box, .jarvis-thinking-glow {{ 
         border: 1px solid rgba(0, 212, 255, 0.2); 
         border-radius: 0 15px 15px 15px; 
@@ -93,16 +92,36 @@ st.markdown(f"""
 
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
 
-    /* ESTRUTURA DO CHAT INPUT */
+    /* ESTRUTURA DO CHAT INPUT - EXPANSÃO SUAVE PARA CIMA AO FOCAR */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important; 
         width: 100vw !important; 
         left: 0px !important; 
         z-index: 1000 !important;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) !important;  /* animação suave */
         padding: 10px 0px 30px 0px !important; 
         background: #0e1117; 
+    }}
+
+    /* Ao focar: sobe bastante + aumenta altura */
+    [data-testid="stChatInput"]:focus-within {{
+        transform: translateY(-120px) !important;  /* sobe bastante (ajuste o -120px se quiser mais/menos) */
+    }}
+
+    [data-testid="stChatInput"] textarea {{
+        background: rgba(22, 27, 34, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        transition: all 0.4s ease !important;  /* transição suave na altura também */
+        padding: 12px !important;
+        width: 100% !important; 
+        min-height: 52px !important;
+    }}
+
+    [data-testid="stChatInput"]:focus-within textarea {{
+        min-height: 120px !important;  /* aumenta altura ao focar */
+        padding: 16px !important;
     }}
 
     [data-testid="stChatInput"] > div {{
@@ -113,6 +132,7 @@ st.markdown(f"""
         border: 1px solid transparent;
     }}
 
+    /* Barra deslizante RGB mantida */
     [data-testid="stChatInput"] > div::before {{
         content: "";
         position: absolute;
