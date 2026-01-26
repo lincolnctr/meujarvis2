@@ -13,7 +13,7 @@ TAMANHO_FONTE = 15
 COR_JARVIS = "#00d4ff" 
 COR_GLOW_IA = "#ff8c00"
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
-USER_ICONE = "https://i.postimg.cc/qRD8WX63/Picsart-26-01-25-22-18-47-938.png"
+USER_ICONE = "https://i.postimg.cc/G9ws1MLv/Picsart-26-01-25-22-18-47-938.png"
 # =========================================================
 
 # =========================================================
