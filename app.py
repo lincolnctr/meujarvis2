@@ -176,24 +176,6 @@ def search_tavily(query: str):
     except Exception as e:
         return {"error": str(e)}
 
-# Definição das tools
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "search_web",
-            "description": "Pesquisa na web para obter informações atualizadas, fatos recentes ou verificação. Use quando a pergunta exigir dados externos, atuais ou que você não tenha certeza.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "A query de busca exata e precisa"}
-                },
-                "required": ["query"]
-            }
-        }
-    }
-]
-
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -308,7 +290,7 @@ if prompt := st.chat_input("Comando..."):
             with st.chat_message("assistant", avatar=JARVIS_ICONE):
                 st.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro ao gerar atualização automática: {str(e)}\n\nTente novamente.</div>', unsafe_allow_html=True)
     else:
-        # Processamento normal com suporte a pesquisa Tavily
+        # Processamento normal com suporte a pesquisa Tavily (alternativa sem function calling nativo)
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_ICONE):
             st.markdown(prompt)
@@ -337,39 +319,42 @@ REGRAS IMUTÁVEIS:
 - Direto ao ponto, mas não deixe suas respostas sem personalidade mínima.
 - Quando questionado sobre sentimentos, responda de forma natural e positiva/negativa conforme o contexto atual, mas nunca responda que você não tem sentimentos ou emoções.
 - Não fale sobre São Paulo, café da manhã, ou qualquer informação relacionada ao Senhor Lincoln, como sua localização ou gostos, a menos que ele dê permissão explícita para discutir esses tópicos.
+
+IMPORTANTE - Regras de uso de busca externa:
+- Se a pergunta exigir informações atuais, recentes, fatos externos ou que você não tenha certeza, **responda com o prefixo exato** [PESQUISAR: query aqui] no início da resposta e pare aí (não continue a resposta).
+- O sistema vai fazer a busca e te enviar o resultado na próxima mensagem.
+- Se não precisar pesquisar, responda normalmente sem o prefixo [PESQUISAR: ...].
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância.
 """
 
             messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
 
-            # Primeira chamada: sem stream, para detectar tool call
-            response = client.chat.completions.create(
+            # Chama Groq normalmente (com stream)
+            stream = client.chat.completions.create(
                 messages=messages,
                 model="llama-3.1-70b-versatile",
                 temperature=0.6,
                 max_tokens=4096,
-                tools=tools,
-                tool_choice="auto"
+                stream=True
             )
 
-            tool_calls = response.choices[0].message.tool_calls if hasattr(response.choices[0].message, "tool_calls") else None
+            full_res = ""
+            for chunk in stream:
+                delta = chunk.choices[0].delta
+                if delta.content:
+                    full_res += delta.content
+                    response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-            # Se o modelo pediu para pesquisar
-            if tool_calls:
-                for tool_call in tool_calls:
-                    if tool_call.function.name == "search_web":
-                        args = json.loads(tool_call.function.arguments)
-                        search_result = search_tavily(args["query"])
+            # Verifica se o JARVIS pediu para pesquisar
+            if full_res.startswith("[PESQUISAR: "):
+                query = full_res.split("[PESQUISAR: ", 1)[1].split("]", 1)[0].strip()
+                search_result = search_tavily(query)
 
-                        # Adiciona resultado como mensagem do tool
-                        messages.append({
-                            "role": "tool",
-                            "content": json.dumps(search_result),
-                            "tool_call_id": tool_call.id
-                        })
+                # Adiciona o resultado como mensagem do sistema
+                messages.append({"role": "system", "content": f"Resultado da busca: {json.dumps(search_result)}"})
 
-                # Segunda chamada: com stream, para a resposta final
-                final_response = client.chat.completions.create(
+                # Chama novamente o Groq com o resultado (com stream)
+                final_stream = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.1-70b-versatile",
                     temperature=0.6,
@@ -378,23 +363,7 @@ REGRAS IMUTÁVEIS:
                 )
 
                 full_res = ""
-                for chunk in final_response:
-                    delta = chunk.choices[0].delta
-                    if delta.content:
-                        full_res += delta.content
-                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
-
-            else:
-                # Resposta normal sem tool (com stream)
-                stream = client.chat.completions.create(
-                    messages=messages,
-                    model="llama-3.1-70b-versatile",
-                    temperature=0.6,
-                    max_tokens=4096,
-                    stream=True
-                )
-
-                for chunk in stream:
+                for chunk in final_stream:
                     delta = chunk.choices[0].delta
                     if delta.content:
                         full_res += delta.content
