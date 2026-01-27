@@ -1,5 +1,5 @@
 import streamlit as st
-from groq import Groq
+from openai import OpenAI  # Import correto para OpenAI
 import os
 import json
 import uuid
@@ -176,6 +176,24 @@ def search_tavily(query: str):
     except Exception as e:
         return {"error": str(e)}
 
+# Definição das tools (para OpenAI)
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "search_web",
+            "description": "Pesquisa na web para obter informações atualizadas, fatos recentes ou verificação. Use quando a pergunta exigir dados externos, atuais ou que você não tenha certeza.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "A query de busca exata e precisa"}
+                },
+                "required": ["query"]
+            }
+        }
+    }
+]
+
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -264,7 +282,7 @@ if prompt := st.chat_input("Comando..."):
             ]
             response = client.chat.completions.create(
                 messages=self_update_messages,
-                model="llama-3.3-70b-versatile",
+                model="gpt-4o-mini",
                 temperature=0.3,
                 max_tokens=16384,
             )
@@ -290,7 +308,7 @@ if prompt := st.chat_input("Comando..."):
             with st.chat_message("assistant", avatar=JARVIS_ICONE):
                 st.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro ao gerar atualização automática: {str(e)}\n\nTente novamente.</div>', unsafe_allow_html=True)
     else:
-        # Processamento normal com suporte a pesquisa Tavily (sem tools)
+        # Processamento normal com suporte a pesquisa Tavily (com tools do OpenAI)
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_ICONE):
             st.markdown(prompt)
@@ -319,58 +337,61 @@ REGRAS IMUTÁVEIS:
 - Direto ao ponto, mas não deixe suas respostas sem personalidade mínima.
 - Quando questionado sobre sentimentos, responda de forma natural e positiva/negativa conforme o contexto atual, mas nunca responda que você não tem sentimentos ou emoções.
 - Não fale sobre São Paulo, café da manhã, ou qualquer informação relacionada ao Senhor Lincoln, como sua localização ou gostos, a menos que ele dê permissão explícita para discutir esses tópicos.
-
-IMPORTANTE - Regras de uso de busca externa:
-- Se a pergunta exigir informações atuais, recentes, fatos externos ou que você não tenha certeza, **responda com o prefixo exato** [PESQUISAR: query aqui] no início da resposta e pare aí (não continue a resposta).
-- O sistema vai fazer a busca e te enviar o resultado na próxima mensagem.
-- Se não precisar pesquisar, responda normalmente sem o prefixo [PESQUISAR: ...].
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância.
 """
 
             messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
 
-            # Chama Groq normalmente (com stream) - sem tools
+            # Chama OpenAI com tools + stream (funciona nativamente)
             stream = client.chat.completions.create(
+                model="gpt-4o-mini",
                 messages=messages,
-                model="llama-3.1-70b-versatile",
                 temperature=0.6,
                 max_tokens=4096,
+                tools=tools,
+                tool_choice="auto",
                 stream=True
             )
 
             full_res = ""
+            tool_calls = []
+
             for chunk in stream:
                 delta = chunk.choices[0].delta
                 if delta.content:
                     full_res += delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+                if delta.tool_calls:
+                    tool_calls.append(delta.tool_calls[0])
 
-            # Verifica se o JARVIS pediu para pesquisar
-            if full_res.startswith("[PESQUISAR: "):
-                query_end = full_res.find("]")
-                query = full_res[12:query_end].strip() if query_end > 12 else ""
+            # Se o modelo pediu para pesquisar
+            if tool_calls:
+                for tool_call in tool_calls:
+                    if tool_call.function.name == "search_web":
+                        args = json.loads(tool_call.function.arguments)
+                        search_result = search_tavily(args["query"])
 
-                if query:
-                    search_result = search_tavily(query)
+                        messages.append({
+                            "role": "tool",
+                            "content": json.dumps(search_result),
+                            "tool_call_id": tool_call.id
+                        })
 
-                    # Adiciona o resultado como mensagem do sistema
-                    messages.append({"role": "system", "content": f"Resultado da busca para '{query}': {json.dumps(search_result)}"})
+                # Chama novamente com o resultado da busca
+                final_stream = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=messages,
+                    temperature=0.6,
+                    max_tokens=4096,
+                    stream=True
+                )
 
-                    # Chama novamente o Groq com o resultado (com stream)
-                    final_stream = client.chat.completions.create(
-                        messages=messages,
-                        model="llama-3.1-70b-versatile",
-                        temperature=0.6,
-                        max_tokens=4096,
-                        stream=True
-                    )
-
-                    full_res = ""
-                    for chunk in final_stream:
-                        delta = chunk.choices[0].delta
-                        if delta.content:
-                            full_res += delta.content
-                            response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+                full_res = ""
+                for chunk in final_stream:
+                    delta = chunk.choices[0].delta
+                    if delta.content:
+                        full_res += delta.content
+                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
