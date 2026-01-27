@@ -290,7 +290,7 @@ if prompt := st.chat_input("Comando..."):
             with st.chat_message("assistant", avatar=JARVIS_ICONE):
                 st.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro ao gerar atualização automática: {str(e)}\n\nTente novamente.</div>', unsafe_allow_html=True)
     else:
-        # Processamento normal com suporte a pesquisa Tavily (sem tools, usando prefixo)
+               # Processamento normal com suporte a pesquisa Tavily (sem tools, usando prefixo)
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_ICONE):
             st.markdown(prompt)
@@ -345,9 +345,8 @@ IMPORTANTE - Regras de uso de busca externa:
                     full_res += delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-            # Verifica se o JARVIS pediu para pesquisar (prefixo [PESQUISAR: ])
+            # Verifica se o JARVIS pediu para pesquisar
             if full_res.startswith("[PESQUISAR: "):
-                # Extrai a query
                 query_end = full_res.find("]")
                 query = full_res[12:query_end].strip() if query_end > 12 else ""
 
