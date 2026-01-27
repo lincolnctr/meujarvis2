@@ -158,7 +158,7 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
-# Função de busca Tavily (adicionada)
+# Função de busca Tavily
 def search_tavily(query: str):
     url = "https://api.tavily.com/search"
     payload = {
@@ -176,7 +176,7 @@ def search_tavily(query: str):
     except Exception as e:
         return {"error": str(e)}
 
-# Definição das tools (function calling) - adicionada
+# Definição das tools
 tools = [
     {
         "type": "function",
@@ -342,7 +342,7 @@ REGRAS IMUTÁVEIS:
 
             messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
 
-            # Chama Groq com tools (suporte a pesquisa) - sem stream na primeira chamada
+            # Chama Groq com tools (sem stream na primeira chamada)
             response = client.chat.completions.create(
                 messages=messages,
                 model="llama-3.1-70b-versatile",
@@ -385,7 +385,7 @@ REGRAS IMUTÁVEIS:
                         response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
             else:
-                # Resposta normal sem tool
+                # Resposta normal sem tool (com stream)
                 stream = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.1-70b-versatile",
