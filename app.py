@@ -5,6 +5,12 @@ import json
 import uuid
 import base64
 import random
+# Teste da chave Tavily
+st.write("Testando Tavily API key...")
+try:
+    st.write(f"Chave carregada: {st.secrets['TAVILY_API_KEY'][:10]}... (mostra só os primeiros 10 caracteres)")
+except KeyError:
+    st.error("Chave TAVILY_API_KEY não encontrada nos secrets.")
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
