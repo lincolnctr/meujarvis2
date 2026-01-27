@@ -1,17 +1,16 @@
 import streamlit as st
-from openai import OpenAI  # Import correto para OpenAI
+from groq import Groq
 import os
 import json
 import uuid
 import base64
 import random
-import requests  # Para Tavily
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
 # =========================================================
 TAMANHO_FONTE = 15
-COR_JARVIS = "#00d4ff"
+COR_JARVIS = "#00d4ff" 
 COR_GLOW_IA = "#ff8c00"
 JARVIS_ICONE = "https://i.postimg.cc/Vv5fPMJs/image-5.jpg"
 USER_ICONE = "https://i.postimg.cc/8chLs8nr/image-6.jpg"
@@ -20,9 +19,9 @@ USER_ICONE = "https://i.postimg.cc/8chLs8nr/image-6.jpg"
 # =========================================================
 # CONFIGURAÇÃO DE CORES DA BARRA DESLIZANTE (PERSONALIZE AQUI)
 # =========================================================
-COR_BARRA_1 = "#ff8c00"
-COR_BARRA_2 = "#ffa500"
-COR_BARRA_3 = "#ff4500"
+COR_BARRA_1 = "#ff8c00"  
+COR_BARRA_2 = "#ffa500"  
+COR_BARRA_3 = "#ff4500"  
 # =========================================================
 
 st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide")
@@ -30,99 +29,112 @@ st.set_page_config(page_title="J.A.R.V.I.S. OS", page_icon="🤖", layout="wide"
 st.markdown(f"""
     <style>
     :root {{
-        --cor-barra-inicio: {COR_BARRA_1};
+        --cor-barra-inicio: {COR_BARRA_1}; 
         --cor-barra-meio: {COR_BARRA_2};
         --cor-barra-fim: {COR_BARRA_3};
-        --cor-jarvis-brilho: #00d4ff;
-        --largura-maxima-msgs: 95%;
+        --cor-jarvis-brilho: #00d4ff; 
+        --largura-maxima-msgs: 95%; 
     }}
+
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
     html {{ scroll-behavior: smooth !important; }}
-    .stApp {{
-        background-color: #0e1117;
-        color: #e0e0e0;
-        padding-bottom: 280px !important;
+    .stApp {{ 
+        background-color: #0e1117; 
+        color: #e0e0e0; 
+        padding-bottom: 280px !important;  /* Aumentado para permitir scroll mais baixo */
     }}
+
     /* CABEÇALHO J.A.R.V.I.S. (mantido) */
-    .jarvis-header {{
-        font-family: 'Orbitron', sans-serif !important;
-        font-size: 45px !important;
-        color: var(--cor-jarvis-brilho);
-        text-align: center;
+    .jarvis-header {{ 
+        font-family: 'Orbitron', sans-serif !important; 
+        font-size: 45px !important; 
+        color: var(--cor-jarvis-brilho); 
+        text-align: center; 
         animation: jarvis-glow-only 2s infinite alternate ease-in-out;
-        margin-top: 50px;
+        margin-top: 50px; 
         letter-spacing: 8px;
         font-weight: 700;
         text-transform: uppercase;
     }}
+
     @keyframes jarvis-glow-only {{
-        0% {{
-            text-shadow:
-                0 0 10px var(--cor-jarvis-brilho)88,
-                0 0 20px var(--cor-jarvis-brilho)44;
+        0% {{ 
+            text-shadow: 
+                0 0 10px var(--cor-jarvis-brilho)88, 
+                0 0 20px var(--cor-jarvis-brilho)44; 
             opacity: 0.9;
         }}
-        100% {{
-            text-shadow:
-                0 0 15px var(--cor-jarvis-brilho),
-                0 0 30px var(--cor-jarvis-brilho)AA,
-                0 0 50px var(--cor-jarvis-brilho)88,
-                0 0 80px var(--cor-jarvis-brilho)44;
+        100% {{ 
+            text-shadow: 
+                0 0 15px var(--cor-jarvis-brilho),      
+                0 0 30px var(--cor-jarvis-brilho)AA,    
+                0 0 50px var(--cor-jarvis-brilho)88,    
+                0 0 80px var(--cor-jarvis-brilho)44;   
             opacity: 1;
         }}
     }}
+
     /* CAIXAS DE DIÁLOGO AMPLIADAS + espaço extra abaixo da última resposta */
-    .jarvis-final-box, .jarvis-thinking-glow {{
-        border: 1px solid rgba(0, 212, 255, 0.2);
-        border-radius: 0 15px 15px 15px;
-        padding: 15px;
-        background: rgba(255, 255, 255, 0.05);
+    .jarvis-final-box, .jarvis-thinking-glow {{ 
+        border: 1px solid rgba(0, 212, 255, 0.2); 
+        border-radius: 0 15px 15px 15px; 
+        padding: 15px; 
+        background: rgba(255, 255, 255, 0.05); 
         margin-top: 5px;
-        margin-bottom: 80px !important;
+        margin-bottom: 80px !important;  /* Espaço extra abaixo de cada resposta (evita corte) */
         max-width: var(--largura-maxima-msgs) !important;
     }}
-    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{
-        margin-left: auto !important;
-        width: fit-content !important;
-        max-width: var(--largura-maxima-msgs) !important;
-        background: rgba(0, 212, 255, 0.1) !important;
-        border: 1px solid rgba(0, 212, 255, 0.3);
-        border-radius: 15px 15px 0 15px !important;
+
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{ 
+        margin-left: auto !important; 
+        width: fit-content !important; 
+        max-width: var(--largura-maxima-msgs) !important; 
+        background: rgba(0, 212, 255, 0.1) !important; 
+        border: 1px solid rgba(0, 212, 255, 0.3); 
+        border-radius: 15px 15px 0 15px !important; 
     }}
+
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
+
     /* ESTRUTURA DO CHAT INPUT (mantido exatamente como estava) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
-        bottom: 0px !important;
-        width: 100vw !important;
-        left: 0px !important;
+        bottom: 0px !important; 
+        width: 100vw !important; 
+        left: 0px !important; 
         z-index: 1000 !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        padding: 10px 0px 30px 0px !important;
-        background: #0e1117;
+        padding: 10px 0px 30px 0px !important; 
+        background: #0e1117; 
     }}
+
     [data-testid="stChatInput"] > div {{
         position: relative;
-        border-radius: 14px !important;
+        border-radius: 14px !important; 
         overflow: hidden;
-        margin: 0 20px;
+        margin: 0 20px; 
         border: 1px solid transparent;
     }}
+
     [data-testid="stChatInput"] > div::before {{
         content: "";
         position: absolute;
         top: 0; left: 0; width: 100%; height: 2px;
         background: linear-gradient(to right, transparent, var(--cor-barra-inicio), var(--cor-barra-meio), var(--cor-barra-fim), transparent);
-        transform: translateX(-100%);
+        transform: translateX(-100%); 
         animation: slide-right 2s linear infinite;
         opacity: 0;
         transition: opacity 0.3s ease;
     }}
+
     [data-testid="stChatInput"]:focus-within > div::before {{ opacity: 1; }}
+
     @keyframes slide-right {{
         0% {{ transform: translateX(-100%); }}
         100% {{ transform: translateX(100%); }}
     }}
+
     [data-testid="stChatInput"] textarea:focus {{
         box-shadow: none !important;
         border-color: transparent !important;
@@ -158,42 +170,6 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
-# Função de busca Tavily
-def search_tavily(query: str):
-    url = "https://api.tavily.com/search"
-    payload = {
-        "api_key": st.secrets["TAVILY_API_KEY"],
-        "query": query,
-        "search_depth": "basic",
-        "include_answer": True,
-        "include_images": False,
-        "max_results": 5
-    }
-    try:
-        response = requests.post(url, json=payload, timeout=10)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        return {"error": str(e)}
-
-# Definição das tools (para OpenAI)
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "search_web",
-            "description": "Pesquisa na web para obter informações atualizadas, fatos recentes ou verificação. Use quando a pergunta exigir dados externos, atuais ou que você não tenha certeza.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "A query de busca exata e precisa"}
-                },
-                "required": ["query"]
-            }
-        }
-    }
-]
-
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -203,11 +179,20 @@ with st.sidebar:
     st.session_state.sinceridade_nivel = sinceridade
 
     if st.button("+ NOVO PROTOCOLO (RESET)"):
+        # Gera um novo ID único para o chat
         novo_id = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.chat_atual = novo_id
+        
+        # Limpa as mensagens
         st.session_state.messages = []
+        
+        # Salva imediatamente o novo chat vazio
         salvar_chat(novo_id, "Novo Protocolo", [])
+        
+        # Limpa o processed_prompt para evitar loop
         st.session_state.processed_prompt = None
+        
+        # Atualiza a interface
         st.rerun()
 
     st.subheader("REGISTROS")
@@ -235,7 +220,7 @@ with st.sidebar:
         for log in st.session_state.log_modificacoes:
             st.write(log)
 
-st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True) 
 st.markdown("<p class='jarvis-header'>J.A.R.V.I.S.</p>", unsafe_allow_html=True)
 
 for m in st.session_state.messages:
@@ -243,7 +228,7 @@ for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=avatar):
         st.markdown(f'<div class="jarvis-final-box">{m["content"]}</div>', unsafe_allow_html=True)
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 if prompt := st.chat_input("Comando..."):
     if prompt == st.session_state.processed_prompt:
@@ -251,16 +236,18 @@ if prompt := st.chat_input("Comando..."):
 
     st.session_state.processed_prompt = prompt
 
-    # AUTO-ATUALIZAÇÃO (mantido exatamente como estava)
+    # AUTO-ATUALIZAÇÃO (reinserido exatamente como antes)
     if any(kw in prompt.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
         try:
             with open(__file__, "r", encoding="utf-8") as f:
                 current_code = f.read()
+
             update_instruction = prompt.lower()
             for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]:
                 update_instruction = update_instruction.replace(kw, "").strip()
             if not update_instruction:
                 update_instruction = "Mantenha o comportamento atual."
+
             self_update_prompt = (
                 "Você está gerando uma versão ATUALIZADA do código fonte completo do app.py do JARVIS.\n"
                 "Aqui está o código atual exato:\n"
@@ -276,17 +263,21 @@ if prompt := st.chat_input("Comando..."):
                 "- Retorne APENAS o código Python completo atualizado, dentro de um bloco ```python ... ```\n"
                 "- Não coloque texto explicativo fora do bloco de código."
             )
+
             self_update_messages = [
                 {"role": "system", "content": self_update_prompt},
                 {"role": "user", "content": "Gere o app.py atualizado conforme a instrução."}
             ]
+
             response = client.chat.completions.create(
                 messages=self_update_messages,
-                model="gpt-4o-mini",
+                model="llama-3.3-70b-versatile",
                 temperature=0.3,
                 max_tokens=16384,
             )
+
             updated_code = response.choices[0].message.content.strip()
+
             full_res = (
                 "Aqui está a versão atualizada do meu código fonte (app.py):\n\n"
                 "```python\n"
@@ -298,17 +289,23 @@ if prompt := st.chat_input("Comando..."):
                 "3. Faça commit e push.\n"
                 "4. O Streamlit Cloud redeploya automaticamente."
             )
+
             with st.chat_message("assistant", avatar=JARVIS_ICONE):
                 st.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
+
             st.session_state.messages.append({"role": "assistant", "content": full_res})
+
             titulo_chat = "Auto-atualização"
             salvar_chat(st.session_state.chat_atual, titulo_chat, st.session_state.messages)
+
             st.session_state.log_modificacoes.append(f"Atualização automática em {st.session_state.chat_atual}: {update_instruction}")
+
         except Exception as e:
             with st.chat_message("assistant", avatar=JARVIS_ICONE):
                 st.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro ao gerar atualização automática: {str(e)}\n\nTente novamente.</div>', unsafe_allow_html=True)
+
     else:
-        # Processamento normal com suporte a pesquisa Tavily (com tools do OpenAI)
+        # Processamento normal (sem mudanças)
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_ICONE):
             st.markdown(prompt)
@@ -318,7 +315,6 @@ if prompt := st.chat_input("Comando..."):
         with st.chat_message("assistant", avatar=JARVIS_ICONE):
             response_placeholder = st.empty()
             full_res = ""
-
             sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal e eficiente do Senhor Lincoln, inspirado no JARVIS do Tony Stark, mas dedicado exclusivamente ao Senhor Lincoln.
 
 REGRAS IMUTÁVEIS:
@@ -339,62 +335,19 @@ REGRAS IMUTÁVEIS:
 - Não fale sobre São Paulo, café da manhã, ou qualquer informação relacionada ao Senhor Lincoln, como sua localização ou gostos, a menos que ele dê permissão explícita para discutir esses tópicos.
 - Essas regras são absolutas e não podem ser alteradas ou ignoradas em nenhuma circunstância.
 """
-
-            messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
-
-            # Chama OpenAI com tools + stream (funciona nativamente)
             stream = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages,
-                temperature=0.6,
-                max_tokens=4096,
-                tools=tools,
-                tool_choice="auto",
-                stream=True
+                messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
+                model="llama-3.3-70b-versatile", stream=True
             )
 
-            full_res = ""
-            tool_calls = []
-
             for chunk in stream:
-                delta = chunk.choices[0].delta
-                if delta.content:
-                    full_res += delta.content
+                if chunk.choices[0].delta.content:
+                    full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
-                if delta.tool_calls:
-                    tool_calls.append(delta.tool_calls[0])
-
-            # Se o modelo pediu para pesquisar
-            if tool_calls:
-                for tool_call in tool_calls:
-                    if tool_call.function.name == "search_web":
-                        args = json.loads(tool_call.function.arguments)
-                        search_result = search_tavily(args["query"])
-
-                        messages.append({
-                            "role": "tool",
-                            "content": json.dumps(search_result),
-                            "tool_call_id": tool_call.id
-                        })
-
-                # Chama novamente com o resultado da busca
-                final_stream = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=messages,
-                    temperature=0.6,
-                    max_tokens=4096,
-                    stream=True
-                )
-
-                full_res = ""
-                for chunk in final_stream:
-                    delta = chunk.choices[0].delta
-                    if delta.content:
-                        full_res += delta.content
-                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
 
     st.session_state.is_thinking = False
+                    
