@@ -342,7 +342,7 @@ REGRAS IMUTÁVEIS:
 
             messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
 
-            # Chama Groq com tools (sem stream na primeira chamada)
+            # Primeira chamada: sem stream, para detectar tool call
             response = client.chat.completions.create(
                 messages=messages,
                 model="llama-3.1-70b-versatile",
@@ -352,7 +352,7 @@ REGRAS IMUTÁVEIS:
                 tool_choice="auto"
             )
 
-            tool_calls = response.choices[0].message.tool_calls
+            tool_calls = response.choices[0].message.tool_calls if hasattr(response.choices[0].message, "tool_calls") else None
 
             # Se o modelo pediu para pesquisar
             if tool_calls:
@@ -368,7 +368,7 @@ REGRAS IMUTÁVEIS:
                             "tool_call_id": tool_call.id
                         })
 
-                # Chama novamente com o resultado da busca (agora com stream)
+                # Segunda chamada: com stream, para a resposta final
                 final_response = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.1-70b-versatile",
