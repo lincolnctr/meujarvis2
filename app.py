@@ -225,7 +225,7 @@ for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar=avatar):
         st.markdown(f'<div class="jarvis-final-box">{m["content"]}</div>', unsafe_allow_html=True)
 
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 if prompt := st.chat_input("Comando..."):
     if prompt == st.session_state.processed_prompt:
