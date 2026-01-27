@@ -345,29 +345,33 @@ IMPORTANTE - Regras de uso de busca externa:
                     full_res += delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-            # Verifica se o JARVIS pediu para pesquisar
+            # Verifica se o JARVIS pediu para pesquisar (prefixo [PESQUISAR: ])
             if full_res.startswith("[PESQUISAR: "):
-                query = full_res.split("[PESQUISAR: ", 1)[1].split("]", 1)[0].strip()
-                search_result = search_tavily(query)
+                # Extrai a query
+                query_end = full_res.find("]")
+                query = full_res[12:query_end].strip() if query_end > 12 else ""
 
-                # Adiciona o resultado como mensagem do sistema
-                messages.append({"role": "system", "content": f"Resultado da busca: {json.dumps(search_result)}"})
+                if query:
+                    search_result = search_tavily(query)
 
-                # Chama novamente o Groq com o resultado (com stream)
-                final_stream = client.chat.completions.create(
-                    messages=messages,
-                    model="llama-3.1-70b-versatile",
-                    temperature=0.6,
-                    max_tokens=4096,
-                    stream=True
-                )
+                    # Adiciona o resultado como mensagem do sistema
+                    messages.append({"role": "system", "content": f"Resultado da busca para '{query}': {json.dumps(search_result)}"})
 
-                full_res = ""
-                for chunk in final_stream:
-                    delta = chunk.choices[0].delta
-                    if delta.content:
-                        full_res += delta.content
-                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+                    # Chama novamente o Groq com o resultado (com stream)
+                    final_stream = client.chat.completions.create(
+                        messages=messages,
+                        model="llama-3.1-70b-versatile",
+                        temperature=0.6,
+                        max_tokens=4096,
+                        stream=True
+                    )
+
+                    full_res = ""
+                    for chunk in final_stream:
+                        delta = chunk.choices[0].delta
+                        if delta.content:
+                            full_res += delta.content
+                            response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
