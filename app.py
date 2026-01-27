@@ -5,7 +5,7 @@ import json
 import uuid
 import base64
 import random
-import requests  # Adicionado para Tavily
+import requests  # Para Tavily
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
@@ -158,7 +158,7 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
-# Função de busca com Tavily (adicionada)
+# Função de busca Tavily (adicionada)
 def search_tavily(query: str):
     url = "https://api.tavily.com/search"
     payload = {
@@ -342,26 +342,17 @@ REGRAS IMUTÁVEIS:
 
             messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
 
-            # Chama Groq com tools (suporte a pesquisa)
+            # Chama Groq com tools (suporte a pesquisa) - sem stream na primeira chamada
             response = client.chat.completions.create(
                 messages=messages,
-                model="llama-3.1-70b-versatile",  # melhor para function calling
+                model="llama-3.1-70b-versatile",
                 temperature=0.6,
                 max_tokens=4096,
                 tools=tools,
-                tool_choice="auto",
-                stream=True
+                tool_choice="auto"
             )
 
-            tool_calls = []
-
-            for chunk in response:
-                delta = chunk.choices[0].delta
-                if delta.content:
-                    full_res += delta.content
-                    response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
-                if delta.tool_calls:
-                    tool_calls.append(delta.tool_calls[0])
+            tool_calls = response.choices[0].message.tool_calls
 
             # Se o modelo pediu para pesquisar
             if tool_calls:
@@ -370,8 +361,6 @@ REGRAS IMUTÁVEIS:
                         args = json.loads(tool_call.function.arguments)
                         search_result = search_tavily(args["query"])
 
-                        response_placeholder.markdown(f'<div style="color: #aaa; font-size: 12px;">Pesquisando: {args["query"]}</div>', unsafe_allow_html=True)
-
                         # Adiciona resultado como mensagem do tool
                         messages.append({
                             "role": "tool",
@@ -379,7 +368,7 @@ REGRAS IMUTÁVEIS:
                             "tool_call_id": tool_call.id
                         })
 
-                # Chama novamente com o resultado da busca
+                # Chama novamente com o resultado da busca (agora com stream)
                 final_response = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.1-70b-versatile",
@@ -388,8 +377,24 @@ REGRAS IMUTÁVEIS:
                     stream=True
                 )
 
-                full_res = ""  # reseta para mostrar só a resposta final
+                full_res = ""
                 for chunk in final_response:
+                    delta = chunk.choices[0].delta
+                    if delta.content:
+                        full_res += delta.content
+                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+
+            else:
+                # Resposta normal sem tool
+                stream = client.chat.completions.create(
+                    messages=messages,
+                    model="llama-3.1-70b-versatile",
+                    temperature=0.6,
+                    max_tokens=4096,
+                    stream=True
+                )
+
+                for chunk in stream:
                     delta = chunk.choices[0].delta
                     if delta.content:
                         full_res += delta.content
