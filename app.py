@@ -4,7 +4,7 @@ import os
 import json
 import uuid
 import base64
-import random  # Atualizado: removido import duplicado, mas mantido para o thinking placeholder
+import random
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
@@ -40,9 +40,8 @@ st.markdown(f"""
     .stApp {{
         background-color: #0e1117;
         color: #e0e0e0;
-        padding-bottom: 280px !important; /* Aumentado para permitir scroll mais baixo */
+        padding-bottom: 280px !important;
     }}
-    /* CABEÇALHO J.A.R.V.I.S. (mantido) */
     .jarvis-header {{
         font-family: 'Orbitron', sans-serif !important;
         font-size: 45px !important;
@@ -55,30 +54,27 @@ st.markdown(f"""
         text-transform: uppercase;
     }}
     @keyframes jarvis-glow-only {{
-        0% {{
-            text-shadow:
-                0 0 10px var(--cor-jarvis-brilho)88,
-                0 0 20px var(--cor-jarvis-brilho)44;
-            opacity: 0.9;
-        }}
-        100% {{
-            text-shadow:
-                0 0 15px var(--cor-jarvis-brilho),
-                0 0 30px var(--cor-jarvis-brilho)AA,
-                0 0 50px var(--cor-jarvis-brilho)88,
-                0 0 80px var(--cor-jarvis-brilho)44;
-            opacity: 1;
-        }}
+        0% {{ text-shadow: 0 0 10px var(--cor-jarvis-brilho)88, 0 0 20px var(--cor-jarvis-brilho)44; opacity: 0.9; }}
+        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 30px var(--cor-jarvis-brilho)AA, 0 0 50px var(--cor-jarvis-brilho)88, 0 0 80px var(--cor-jarvis-brilho)44; opacity: 1; }}
     }}
-    /* CAIXAS DE DIÁLOGO AMPLIADAS + espaço extra abaixo da última resposta */
     .jarvis-final-box, .jarvis-thinking-glow {{
         border: 1px solid rgba(0, 212, 255, 0.2);
         border-radius: 0 15px 15px 15px;
         padding: 15px;
         background: rgba(255, 255, 255, 0.05);
         margin-top: 5px;
-        margin-bottom: 80px !important; /* Espaço extra abaixo de cada resposta (evita corte) */
+        margin-bottom: 80px !important;
         max-width: var(--largura-maxima-msgs) !important;
+        transition: all 0.3s ease;
+    }}
+    .jarvis-thinking-glow {{
+        color: var(--cor-jarvis-brilho);
+        animation: pulse 1.5s infinite;
+    }}
+    @keyframes pulse {{
+        0% {{ opacity: 0.7; }}
+        50% {{ opacity: 1; }}
+        100% {{ opacity: 0.7; }}
     }}
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{
         margin-left: auto !important;
@@ -89,7 +85,6 @@ st.markdown(f"""
         border-radius: 15px 15px 0 15px !important;
     }}
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
-    /* ESTRUTURA DO CHAT INPUT (mantido exatamente como estava) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important;
@@ -128,8 +123,10 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
+
 CHATS_DIR = "chats_db"
 if not os.path.exists(CHATS_DIR): os.makedirs(CHATS_DIR)
+
 if "chat_atual" not in st.session_state: st.session_state.chat_atual = f"chat_{uuid.uuid4().hex[:6]}"
 if "messages" not in st.session_state: st.session_state.messages = []
 if "processed_prompt" not in st.session_state: st.session_state.processed_prompt = None
@@ -138,19 +135,23 @@ if "humor_nivel" not in st.session_state: st.session_state.humor_nivel = 59
 if "sinceridade_nivel" not in st.session_state: st.session_state.sinceridade_nivel = 75
 if "is_thinking" not in st.session_state: st.session_state.is_thinking = False
 if "evitar_tema" not in st.session_state: st.session_state.evitar_tema = False
+
 def carregar_perfil():
     if os.path.exists("perfil.txt"):
         with open("perfil.txt", "r", encoding="utf-8") as f:
             return f.read().strip()
     return "Nenhuma informação de perfil encontrada."
+
 def carregar_chat(chat_id):
     path = os.path.join(CHATS_DIR, f"{chat_id}.json")
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f: return json.load(f)
     return {"titulo": "Novo Protocolo", "messages": []}
+
 def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
+
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -158,22 +159,15 @@ with st.sidebar:
     st.session_state.humor_nivel = humor
     sinceridade = st.slider("Sinceridade %", 0, 100, st.session_state.sinceridade_nivel, key="sinceridade_slider")
     st.session_state.sinceridade_nivel = sinceridade
+
     if st.button("+ NOVO PROTOCOLO (RESET)"):
-        # Gera um novo ID único para o chat
         novo_id = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.chat_atual = novo_id
-       
-        # Limpa as mensagens
         st.session_state.messages = []
-       
-        # Salva imediatamente o novo chat vazio
         salvar_chat(novo_id, "Novo Protocolo", [])
-       
-        # Limpa o processed_prompt para evitar loop
         st.session_state.processed_prompt = None
-       
-        # Atualiza a interface
         st.rerun()
+
     st.subheader("REGISTROS")
     if os.path.exists(CHATS_DIR):
         for f in sorted(os.listdir(CHATS_DIR), reverse=True):
@@ -193,22 +187,28 @@ with st.sidebar:
                     if st.button("Salvar", key=f"s_{cid}"):
                         salvar_chat(cid, novo_titulo, dados['messages'])
                         st.rerun()
+
     st.subheader("LOG DE MODIFICAÇÕES")
     if st.session_state.log_modificacoes:
         for log in st.session_state.log_modificacoes:
             st.write(log)
+
 st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
 st.markdown("<p class='jarvis-header'>J.A.R.V.I.S.</p>", unsafe_allow_html=True)
+
 for m in st.session_state.messages:
     avatar = USER_ICONE if m["role"] == "user" else JARVIS_ICONE
     with st.chat_message(m["role"], avatar=avatar):
         st.markdown(f'<div class="jarvis-final-box">{m["content"]}</div>', unsafe_allow_html=True)
+
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
 if prompt := st.chat_input("Comando..."):
     if prompt == st.session_state.processed_prompt:
-        st.rerun() # Evita loop
+        st.rerun()  # Evita loop
     st.session_state.processed_prompt = prompt
-    # AUTO-ATUALIZAÇÃO (reinserido exatamente como antes)
+
+    # AUTO-ATUALIZAÇÃO (mantido exatamente como estava)
     if any(kw in prompt.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
         try:
             with open(__file__, "r", encoding="utf-8") as f:
@@ -265,13 +265,27 @@ if prompt := st.chat_input("Comando..."):
             with st.chat_message("assistant", avatar=JARVIS_ICONE):
                 st.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro ao gerar atualização automática: {str(e)}\n\nTente novamente.</div>', unsafe_allow_html=True)
     else:
-        # Processamento normal (sem mudanças)
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_ICONE):
             st.markdown(prompt)
+
         memoria_perfil = carregar_perfil()
+
         with st.chat_message("assistant", avatar=JARVIS_ICONE):
             response_placeholder = st.empty()
+
+            # Mensagens de "Pensando..." variadas
+            thinking_msgs = [
+                "Pensando...",
+                "Analisando...",
+                "Processando protocolos...",
+                "Consultando sistemas...",
+                "Refletindo com cautela...",
+                "Calculando a melhor resposta..."
+            ]
+            thinking_text = random.choice(thinking_msgs)
+            response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{thinking_text}█</div>', unsafe_allow_html=True)
+
             full_res = ""
             sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal, extremamente inteligente e eficiente do Senhor Lincoln, inspirado no JARVIS do Tony Stark, mas dedicado exclusivamente ao Senhor Lincoln.
 REGRAS IMUTÁVEIS (prioridade absoluta):
@@ -300,13 +314,19 @@ INTELIGÊNCIA AVANÇADA:
 """
             stream = client.chat.completions.create(
                 messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
-                model="llama-3.3-70b-versatile", stream=True
+                model="llama-3.3-70b-versatile",
+                temperature=0.6,
+                max_tokens=4096,
+                stream=True
             )
+
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
+
     st.session_state.is_thinking = False
