@@ -1,7 +1,5 @@
 import streamlit as st
 from groq import Groq
-from datetime import datetime
-import pytz
 import os
 import json
 import uuid
@@ -154,32 +152,6 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
-def get_current_time_brasil():
-    tz = pytz.timezone('America/Sao_Paulo')
-    now = datetime.now(tz)
-    return now.strftime("%d/%m/%Y %H:%M:%S")
-
-def get_clima(cidade="Campinas"):
-    try:
-        # Coordenadas de Campinas (pode mudar se quiser detectar cidade)
-        url = "https://api.open-meteo.com/v1/forecast?latitude=-22.9068&longitude=-47.0616&current=temperature_2m,relative_humidity_2m,weather_code&timezone=America%2FSao_Paulo"
-        response = requests.get(url, timeout=5)
-        data = response.json()
-        if "current" in data:
-            temp = data["current"]["temperature_2m"]
-            umidade = data["current"]["relative_humidity_2m"]
-            weather_code = data["current"]["weather_code"]
-            weather_map = {
-                0: "Céu claro", 1: "Principalmente claro", 2: "Parcialmente nublado",
-                3: "Nublado", 45: "Nevoeiro", 51: "Chuva leve", 61: "Chuva moderada"
-                # Adicione mais códigos se quiser
-            }
-            condicao = weather_map.get(weather_code, "Condição desconhecida")
-            return f"Clima em {cidade} agora: {temp}°C, {umidade}% de umidade, {condicao}."
-        return "Não consegui obter o clima no momento."
-    except Exception as e:
-        return f"Erro ao consultar clima: {str(e)}"
-
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -293,7 +265,6 @@ if prompt := st.chat_input("Comando..."):
             with st.chat_message("assistant", avatar=JARVIS_ICONE):
                 st.markdown(f'<div class="jarvis-final-box" style="color:red; border: 1px solid red; padding: 15px;">Erro ao gerar atualização automática: {str(e)}\n\nTente novamente.</div>', unsafe_allow_html=True)
     else:
-        # Processamento normal (sem mudanças)
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_ICONE):
             st.markdown(prompt)
@@ -317,7 +288,6 @@ if prompt := st.chat_input("Comando..."):
 
             full_res = ""
             sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal, extremamente inteligente e eficiente do Senhor Lincoln, inspirado no JARVIS do Tony Stark, mas dedicado exclusivamente ao Senhor Lincoln.
-
 REGRAS IMUTÁVEIS (prioridade absoluta):
 - Pense passo a passo antes de responder, mas NUNCA mostre o raciocínio no output final (só a resposta limpa).
 - Sempre responda de forma extremamente concisa, direta e objetiva. Nunca mande textões ou explicações longas a menos que explicitamente solicitado.
@@ -340,64 +310,23 @@ INTELIGÊNCIA AVANÇADA:
 - Antes de responder, pense: o que o Senhor Lincoln realmente quer saber? Qual é o objetivo? Como ser o mais útil possível em poucas palavras?
 - Se a pergunta for complexa, divida mentalmente em partes e responda de forma estruturada, mas curta.
 - Use raciocínio lógico, conhecimento atualizado (via busca se necessário) e criatividade para dar respostas mais inteligentes e úteis.
-- Se a pergunta envolver clima atual, data/hora ou informações em tempo real, use o prefixo exato [PESQUISAR: clima ou data] no início da resposta e pare aí.
+- Se não souber algo com certeza, use a ferramenta de busca automaticamente (prefixo [PESQUISAR: ...] se necessário).
 """
-
-            messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
-
             stream = client.chat.completions.create(
-                messages=messages,
+                messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
                 model="llama-3.3-70b-versatile",
                 temperature=0.6,
                 max_tokens=4096,
                 stream=True
             )
 
-            full_res = ""
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-            # Verifica se pediu pesquisa
-            fonte = ""
-            if full_res.startswith("[PESQUISAR: "):
-                query_end = full_res.find("]")
-                query = full_res[12:query_end].strip().lower() if query_end > 12 else ""
-
-                resultado = ""
-                if "clima" in query:
-                    resultado = get_clima()
-                    fonte = "Dados obtidos em tempo real via Open-Meteo API."
-                elif "data" in query or "hora" in query:
-                    resultado = f"Data e hora atual em Brasília: {get_current_time_brasil()}"
-                    fonte = "Hora calculada com base no fuso horário America/Sao_Paulo."
-                else:
-                    resultado = search_tavily(query)
-                    fonte = "Dados obtidos via Tavily Search API."
-
-                # Limpa o prefixo e usa o resultado como contexto para o Groq gerar resposta final
-                messages.append({"role": "system", "content": f"Use este dado real para responder de forma concisa e natural: {resultado}"})
-
-                final_stream = client.chat.completions.create(
-                    messages=messages,
-                    model="llama-3.3-70b-versatile",
-                    temperature=0.6,
-                    max_tokens=4096,
-                    stream=True
-                )
-
-                full_res = ""
-                for chunk in final_stream:
-                    if chunk.choices[0].delta.content:
-                        full_res += chunk.choices[0].delta.content
-                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
-
-                # Adiciona a fonte no final
-                if fonte:
-                    full_res += f"\n\n<small style='color: #888; font-size: 0.8em;'>{fonte}</small>"
-
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
+
     st.session_state.is_thinking = False
