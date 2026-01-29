@@ -376,11 +376,9 @@ INTELIGÊNCIA AVANÇADA:
                     resultado = search_tavily(query)
                     fonte = "Dados obtidos via Tavily Search API."
 
-                # Agora substitui o prefixo pelo resultado real e chama o Groq novamente para formatar a resposta final
-                # Cria mensagem com o resultado como contexto
+                # Limpa o prefixo e usa o resultado como contexto para o Groq gerar resposta final
                 messages.append({"role": "system", "content": f"Use este dado real para responder de forma concisa e natural: {resultado}"})
 
-                # Chama novamente o Groq para gerar a resposta final baseada no resultado
                 final_stream = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.3-70b-versatile",
@@ -395,7 +393,7 @@ INTELIGÊNCIA AVANÇADA:
                         full_res += chunk.choices[0].delta.content
                         response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
-                # Adiciona a fonte no final (discreta)
+                # Adiciona a fonte no final
                 if fonte:
                     full_res += f"\n\n<small style='color: #888; font-size: 0.8em;'>{fonte}</small>"
 
