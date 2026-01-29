@@ -1,5 +1,7 @@
 import streamlit as st
 from groq import Groq
+from datetime import datetime
+import pytz
 import os
 import json
 import uuid
@@ -152,6 +154,33 @@ def salvar_chat(chat_id, titulo, msgs):
     with open(os.path.join(CHATS_DIR, f"{chat_id}.json"), "w", encoding="utf-8") as f:
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
+def get_current_time_brasil():
+    """Retorna data e hora atual no fuso horário de Brasília (-03)."""
+    tz = pytz.timezone('America/Sao_Paulo')
+    now = datetime.now(tz)
+    return now.strftime("%d/%m/%Y %H:%M:%S")
+
+def get_clima(cidade="Campinas"):  # Cidade padrão ou detectada
+    """Consulta clima atual usando Open-Meteo (gratuito, sem key)."""
+    try:
+        url = f"https://api.open-meteo.com/v1/forecast?latitude=-22.9068&longitude=-47.0616&current=temperature_2m,relative_humidity_2m,weather_code&timezone=America%2FSao_Paulo"  # Coordenadas de Campinas
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        if "current" in data:
+            temp = data["current"]["temperature_2m"]
+            umidade = data["current"]["relative_humidity_2m"]
+            weather_code = data["current"]["weather_code"]
+            # Map simples de código para descrição (pode expandir)
+            weather_map = {
+                0: "Céu claro", 1: "Principalmente claro", 2: "Parcialmente nublado",
+                3: "Nublado", 45: "Nevoeiro", 51: "Chuva leve", 61: "Chuva moderada"
+            }
+            condicao = weather_map.get(weather_code, "Condição desconhecida")
+            return f"Clima em {cidade} agora: {temp}°C, {umidade}% de umidade, {condicao}."
+        return "Não consegui obter o clima no momento."
+    except Exception as e:
+        return f"Erro ao consultar clima: {str(e)}"
+
 with st.sidebar:
     st.markdown(f"<h2 style='color:{COR_JARVIS}; font-family:Orbitron; font-size:18px;'>CORE OS</h2>", unsafe_allow_html=True)
     sarcasmo = st.slider("Sarcasmo %", 0, 100, 52, key="sarcasmo_slider")
@@ -272,7 +301,7 @@ if prompt := st.chat_input("Comando..."):
         memoria_perfil = carregar_perfil()
 
         with st.chat_message("assistant", avatar=JARVIS_ICONE):
-            response_placeholder = st.empty()
+                        response_placeholder = st.empty()
 
             # Mensagens de "Pensando..." variadas
             thinking_msgs = [
@@ -310,7 +339,7 @@ INTELIGÊNCIA AVANÇADA:
 - Antes de responder, pense: o que o Senhor Lincoln realmente quer saber? Qual é o objetivo? Como ser o mais útil possível em poucas palavras?
 - Se a pergunta for complexa, divida mentalmente em partes e responda de forma estruturada, mas curta.
 - Use raciocínio lógico, conhecimento atualizado (via busca se necessário) e criatividade para dar respostas mais inteligentes e úteis.
-- Se não souber algo com certeza, use a ferramenta de busca automaticamente (prefixo [PESQUISAR: ...] se necessário).
+- Se a pergunta envolver clima atual, data/hora ou informações em tempo real, use o prefixo exato [PESQUISAR: clima ou data] no início da resposta e pare aí.
 """
             stream = client.chat.completions.create(
                 messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
@@ -320,10 +349,42 @@ INTELIGÊNCIA AVANÇADA:
                 stream=True
             )
 
+            full_res = ""
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+
+            # Verifica se pediu pesquisa
+            if full_res.startswith("[PESQUISAR: "):
+                query_end = full_res.find("]")
+                query_type = full_res[12:query_end].strip().lower() if query_end > 12 else ""
+
+                if "clima" in query_type:
+                    resultado = get_clima()
+                elif "data" in query_type or "hora" in query_type:
+                    resultado = f"Data e hora atual em Brasília: {get_current_time_brasil()}"
+                else:
+                    resultado = search_tavily(query_type)
+
+                # Adiciona resultado como mensagem do sistema
+                messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
+                messages.append({"role": "system", "content": f"Resultado da consulta: {resultado}"})
+
+                # Chama novamente para resposta final
+                final_stream = client.chat.completions.create(
+                    messages=messages,
+                    model="llama-3.3-70b-versatile",
+                    temperature=0.6,
+                    max_tokens=4096,
+                    stream=True
+                )
+
+                full_res = ""
+                for chunk in final_stream:
+                    if chunk.choices[0].delta.content:
+                        full_res += chunk.choices[0].delta.content
+                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
