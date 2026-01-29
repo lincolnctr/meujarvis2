@@ -182,16 +182,16 @@ with st.sidebar:
         # Gera um novo ID único para o chat
         novo_id = f"chat_{uuid.uuid4().hex[:6]}"
         st.session_state.chat_atual = novo_id
-        
+
         # Limpa as mensagens
         st.session_state.messages = []
-        
+
         # Salva imediatamente o novo chat vazio
         salvar_chat(novo_id, "Novo Protocolo", [])
-        
+
         # Limpa o processed_prompt para evitar loop
         st.session_state.processed_prompt = None
-        
+
         # Atualiza a interface
         st.rerun()
 
@@ -350,4 +350,3 @@ REGRAS IMUTÁVEIS:
             salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
 
     st.session_state.is_thinking = False
-                    
