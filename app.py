@@ -316,6 +316,7 @@ if prompt := st.chat_input("Comando..."):
 
             full_res = ""
             sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal, extremamente inteligente e eficiente do Senhor Lincoln, inspirado no JARVIS do Tony Stark, mas dedicado exclusivamente ao Senhor Lincoln.
+
 REGRAS IMUTÁVEIS (prioridade absoluta):
 - Pense passo a passo antes de responder, mas NUNCA mostre o raciocínio no output final (só a resposta limpa).
 - Sempre responda de forma extremamente concisa, direta e objetiva. Nunca mande textões ou explicações longas a menos que explicitamente solicitado.
@@ -338,7 +339,7 @@ INTELIGÊNCIA AVANÇADA:
 - Antes de responder, pense: o que o Senhor Lincoln realmente quer saber? Qual é o objetivo? Como ser o mais útil possível em poucas palavras?
 - Se a pergunta for complexa, divida mentalmente em partes e responda de forma estruturada, mas curta.
 - Use raciocínio lógico, conhecimento atualizado (via busca se necessário) e criatividade para dar respostas mais inteligentes e úteis.
-- Se não souber algo com certeza, use a ferramenta de busca automaticamente (prefixo [PESQUISAR: ...] se necessário).
+- Se a pergunta envolver clima atual, data/hora ou informações em tempo real, use o prefixo exato [PESQUISAR: clima ou data] no início da resposta e pare aí.
 """
             stream = client.chat.completions.create(
                 messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
@@ -353,6 +354,45 @@ INTELIGÊNCIA AVANÇADA:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+
+            # Verifica se pediu pesquisa
+            fonte = ""
+            if full_res.startswith("[PESQUISAR: "):
+                query_end = full_res.find("]")
+                query = full_res[12:query_end].strip().lower() if query_end > 12 else ""
+
+                if "clima" in query:
+                    resultado = get_clima()
+                    fonte = "Dados obtidos em tempo real via Open-Meteo API."
+                elif "data" in query or "hora" in query:
+                    resultado = f"Data e hora atual em Brasília: {get_current_time_brasil()}"
+                    fonte = "Hora calculada com base no fuso horário America/Sao_Paulo."
+                else:
+                    resultado = search_tavily(query)
+                    fonte = "Dados obtidos via Tavily Search API."
+
+                # Adiciona resultado como mensagem do sistema
+                messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
+                messages.append({"role": "system", "content": f"Resultado da consulta: {resultado}"})
+
+                # Chama novamente para resposta final
+                final_stream = client.chat.completions.create(
+                    messages=messages,
+                    model="llama-3.3-70b-versatile",
+                    temperature=0.6,
+                    max_tokens=4096,
+                    stream=True
+                )
+
+                full_res = ""
+                for chunk in final_stream:
+                    if chunk.choices[0].delta.content:
+                        full_res += chunk.choices[0].delta.content
+                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
+
+            # Adiciona fonte no final da resposta
+            if fonte:
+                full_res += f"\n\n<small style='color: #888;'>{fonte}</small>"
 
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
