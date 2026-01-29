@@ -155,25 +155,24 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 def get_current_time_brasil():
-    """Retorna data e hora atual no fuso horário de Brasília (-03)."""
-    tz = pytz.timezone('America/Sao_Paulo')
+    tz = pytz.timezone('Americana/Sao_Paulo')
     now = datetime.now(tz)
     return now.strftime("%d/%m/%Y %H:%M:%S")
 
-def get_clima(cidade="Campinas"):  # Cidade padrão ou detectada
-    """Consulta clima atual usando Open-Meteo (gratuito, sem key)."""
+def get_clima(cidade="Campinas"):
     try:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude=-22.9068&longitude=-47.0616&current=temperature_2m,relative_humidity_2m,weather_code&timezone=America%2FSao_Paulo"  # Coordenadas de Campinas
+        # Coordenadas de Campinas (pode mudar se quiser detectar cidade)
+        url = "https://api.open-meteo.com/v1/forecast?latitude=-22.9068&longitude=-47.0616&current=temperature_2m,relative_humidity_2m,weather_code&timezone=America%2FSao_Paulo"
         response = requests.get(url, timeout=5)
         data = response.json()
         if "current" in data:
             temp = data["current"]["temperature_2m"]
             umidade = data["current"]["relative_humidity_2m"]
             weather_code = data["current"]["weather_code"]
-            # Map simples de código para descrição (pode expandir)
             weather_map = {
                 0: "Céu claro", 1: "Principalmente claro", 2: "Parcialmente nublado",
                 3: "Nublado", 45: "Nevoeiro", 51: "Chuva leve", 61: "Chuva moderada"
+                # Adicione mais códigos se quiser
             }
             condicao = weather_map.get(weather_code, "Condição desconhecida")
             return f"Clima em {cidade} agora: {temp}°C, {umidade}% de umidade, {condicao}."
