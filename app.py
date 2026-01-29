@@ -301,7 +301,7 @@ if prompt := st.chat_input("Comando..."):
         memoria_perfil = carregar_perfil()
 
         with st.chat_message("assistant", avatar=JARVIS_ICONE):
-                        response_placeholder = st.empty()
+            response_placeholder = st.empty()
 
             # Mensagens de "Pensando..." variadas
             thinking_msgs = [
@@ -339,7 +339,7 @@ INTELIGÊNCIA AVANÇADA:
 - Antes de responder, pense: o que o Senhor Lincoln realmente quer saber? Qual é o objetivo? Como ser o mais útil possível em poucas palavras?
 - Se a pergunta for complexa, divida mentalmente em partes e responda de forma estruturada, mas curta.
 - Use raciocínio lógico, conhecimento atualizado (via busca se necessário) e criatividade para dar respostas mais inteligentes e úteis.
-- Se a pergunta envolver clima atual, data/hora ou informações em tempo real, use o prefixo exato [PESQUISAR: clima ou data] no início da resposta e pare aí.
+- Se não souber algo com certeza, use a ferramenta de busca automaticamente (prefixo [PESQUISAR: ...] se necessário).
 """
             stream = client.chat.completions.create(
                 messages=[{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:],
@@ -354,37 +354,6 @@ INTELIGÊNCIA AVANÇADA:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
-
-            # Verifica se pediu pesquisa
-            if full_res.startswith("[PESQUISAR: "):
-                query_end = full_res.find("]")
-                query_type = full_res[12:query_end].strip().lower() if query_end > 12 else ""
-
-                if "clima" in query_type:
-                    resultado = get_clima()
-                elif "data" in query_type or "hora" in query_type:
-                    resultado = f"Data e hora atual em Brasília: {get_current_time_brasil()}"
-                else:
-                    resultado = search_tavily(query_type)
-
-                # Adiciona resultado como mensagem do sistema
-                messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
-                messages.append({"role": "system", "content": f"Resultado da consulta: {resultado}"})
-
-                # Chama novamente para resposta final
-                final_stream = client.chat.completions.create(
-                    messages=messages,
-                    model="llama-3.3-70b-versatile",
-                    temperature=0.6,
-                    max_tokens=4096,
-                    stream=True
-                )
-
-                full_res = ""
-                for chunk in final_stream:
-                    if chunk.choices[0].delta.content:
-                        full_res += chunk.choices[0].delta.content
-                        response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
 
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
