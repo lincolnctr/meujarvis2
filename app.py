@@ -371,11 +371,13 @@ INTELIGÊNCIA AVANÇADA:
                     resultado = search_tavily(query)
                     fonte = "Dados obtidos via Tavily Search API."
 
-                # Adiciona resultado como mensagem do sistema
-                messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
-                messages.append({"role": "system", "content": f"Resultado da consulta: {resultado}"})
+                # Substitui o prefixo pelo resultado real para o Groq gerar resposta final
+                full_res = resultado  # Começa a resposta final com o dado real
 
-                # Chama novamente para resposta final
+                # Chama novamente o Groq para formatar a resposta de forma natural
+                messages = [{"role": "system", "content": sys_prompt}] + st.session_state.messages[-10:]
+                messages.append({"role": "system", "content": f"Use este dado real para responder: {resultado}. Formate de forma concisa e natural."})
+
                 final_stream = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.3-70b-versatile",
@@ -397,5 +399,4 @@ INTELIGÊNCIA AVANÇADA:
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
-
     st.session_state.is_thinking = False
