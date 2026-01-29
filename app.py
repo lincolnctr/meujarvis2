@@ -155,7 +155,7 @@ def salvar_chat(chat_id, titulo, msgs):
         json.dump({"titulo": titulo, "messages": msgs}, f)
 
 def get_current_time_brasil():
-    tz = pytz.timezone('Americana/Sao_Paulo')
+    tz = pytz.timezone('America/Sao_Paulo')
     now = datetime.now(tz)
     return now.strftime("%d/%m/%Y %H:%M:%S")
 
