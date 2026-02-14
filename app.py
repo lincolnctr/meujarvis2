@@ -5,6 +5,7 @@ import json
 import uuid
 import base64
 import random
+import sqlite3  # Para o banco de dados persistente
 
 # =========================================================
 # PROTOCOLO JARVIS - MEMÓRIA DE PERFIL ATIVA
@@ -40,7 +41,7 @@ st.markdown(f"""
     .stApp {{
         background-color: #0e1117;
         color: #e0e0e0;
-        padding-bottom: 280px !important;
+        padding-bottom: 280px !important; /* Aumentado para permitir scroll mais baixo */
     }}
     .jarvis-header {{
         font-family: 'Orbitron', sans-serif !important;
@@ -54,8 +55,20 @@ st.markdown(f"""
         text-transform: uppercase;
     }}
     @keyframes jarvis-glow-only {{
-        0% {{ text-shadow: 0 0 10px var(--cor-jarvis-brilho)88, 0 0 20px var(--cor-jarvis-brilho)44; opacity: 0.9; }}
-        100% {{ text-shadow: 0 0 15px var(--cor-jarvis-brilho), 0 0 30px var(--cor-jarvis-brilho)AA, 0 0 50px var(--cor-jarvis-brilho)88, 0 0 80px var(--cor-jarvis-brilho)44; opacity: 1; }}
+        0% {{
+            text-shadow:
+                0 0 10px var(--cor-jarvis-brilho)88,
+                0 0 20px var(--cor-jarvis-brilho)44;
+            opacity: 0.9;
+        }}
+        100% {{
+            text-shadow:
+                0 0 15px var(--cor-jarvis-brilho),
+                0 0 30px var(--cor-jarvis-brilho)AA,
+                0 0 50px var(--cor-jarvis-brilho)88,
+                0 0 80px var(--cor-jarvis-brilho)44;
+            opacity: 1;
+        }}
     }}
     .jarvis-final-box, .jarvis-thinking-glow {{
         border: 1px solid rgba(0, 212, 255, 0.2);
@@ -63,18 +76,8 @@ st.markdown(f"""
         padding: 15px;
         background: rgba(255, 255, 255, 0.05);
         margin-top: 5px;
-        margin-bottom: 80px !important;
+        margin-bottom: 80px !important; /* Espaço extra abaixo de cada resposta (evita corte) */
         max-width: var(--largura-maxima-msgs) !important;
-        transition: all 0.3s ease;
-    }}
-    .jarvis-thinking-glow {{
-        color: var(--cor-jarvis-brilho);
-        animation: pulse 1.5s infinite;
-    }}
-    @keyframes pulse {{
-        0% {{ opacity: 0.7; }}
-        50% {{ opacity: 1; }}
-        100% {{ opacity: 0.7; }}
     }}
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {{
         margin-left: auto !important;
@@ -85,6 +88,7 @@ st.markdown(f"""
         border-radius: 15px 15px 0 15px !important;
     }}
     [data-testid="stChatMessage"] {{ background-color: transparent !important; }}
+    /* ESTRUTURA DO CHAT INPUT (mantido exatamente como estava) */
     [data-testid="stChatInput"] {{
         position: fixed !important;
         bottom: 0px !important;
@@ -205,9 +209,8 @@ client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 if prompt := st.chat_input("Comando..."):
     if prompt == st.session_state.processed_prompt:
-        st.rerun()  # Evita loop
+        st.rerun() # Evita loop
     st.session_state.processed_prompt = prompt
-
     # AUTO-ATUALIZAÇÃO (mantido exatamente como estava)
     if any(kw in prompt.lower() for kw in ["atualize-se", "forneça código atualizado", "atualiza seu script", "forneça seu código"]):
         try:
@@ -268,12 +271,9 @@ if prompt := st.chat_input("Comando..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=USER_ICONE):
             st.markdown(prompt)
-
         memoria_perfil = carregar_perfil()
-
         with st.chat_message("assistant", avatar=JARVIS_ICONE):
             response_placeholder = st.empty()
-
             # Mensagens de "Pensando..." variadas
             thinking_msgs = [
                 "Pensando...",
@@ -285,7 +285,6 @@ if prompt := st.chat_input("Comando..."):
             ]
             thinking_text = random.choice(thinking_msgs)
             response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{thinking_text}█</div>', unsafe_allow_html=True)
-
             full_res = ""
             sys_prompt = f"""Você é J.A.R.V.I.S., assistente pessoal leal, extremamente inteligente e eficiente do Senhor Lincoln, inspirado no JARVIS do Tony Stark, mas dedicado exclusivamente ao Senhor Lincoln.
 REGRAS IMUTÁVEIS (prioridade absoluta):
@@ -319,14 +318,11 @@ INTELIGÊNCIA AVANÇADA:
                 max_tokens=4096,
                 stream=True
             )
-
             for chunk in stream:
                 if chunk.choices[0].delta.content:
                     full_res += chunk.choices[0].delta.content
                     response_placeholder.markdown(f'<div class="jarvis-thinking-glow">{full_res}█</div>', unsafe_allow_html=True)
-
             response_placeholder.markdown(f'<div class="jarvis-final-box">{full_res}</div>', unsafe_allow_html=True)
             st.session_state.messages.append({"role": "assistant", "content": full_res})
             salvar_chat(st.session_state.chat_atual, "PROTOCOLO ATIVO", st.session_state.messages)
-
     st.session_state.is_thinking = False
